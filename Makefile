@@ -1,10 +1,13 @@
-.PHONY: dev build migrate lint test clean prod-up prod-down load-test
+.PHONY: dev build build-linux migrate lint test clean prod-up prod-down load-test
 
 dev:
 	@air
 
 build:
 	go build -o bin/api ./cmd/api
+
+build-linux:
+	GOOS=linux GOARCH=amd64 go build -o bin/warpgate-linux ./cmd/api
 
 migrate:
 	go run ./cmd/api -migrate
