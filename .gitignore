@@ -9,3 +9,4 @@ tmp/
 *.test
 *.out
 __debug_bin
+DEV_GUIDE.md
