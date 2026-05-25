@@ -152,7 +152,7 @@ Same as above but run the Go binary directly instead of Docker.
 
 ```bash
 apt update && apt upgrade -y
-apt install -y postgresql-16 redis-server git curl caddy
+apt install -y postgresql redis-server git curl caddy
 ```
 
 ### 2. PostgreSQL & Redis
