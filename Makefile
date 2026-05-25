@@ -7,7 +7,11 @@ build:
 	go build -o bin/api ./cmd/api
 
 build-linux:
+ifeq ($(OS),Windows_NT)
+	set "GOOS=linux" && set "GOARCH=amd64" && go build -o bin\warpgate-linux ./cmd/api
+else
 	GOOS=linux GOARCH=amd64 go build -o bin/warpgate-linux ./cmd/api
+endif
 
 migrate:
 	go run ./cmd/api -migrate
