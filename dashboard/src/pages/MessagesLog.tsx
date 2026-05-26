@@ -46,55 +46,63 @@ export default function MessagesLog({ sessionId }: Props) {
 
   return (
     <div>
-      <form onSubmit={handleSend} className="bg-card border rounded-lg p-4 mb-4">
-        <h3 className="font-semibold mb-2">Send Message</h3>
-        {error && <p className="text-destructive text-sm mb-2">{error}</p>}
-        <div className="flex gap-2 mb-2">
+      <form onSubmit={handleSend} className="bg-card border rounded-xl p-5 mb-6 shadow-sm">
+        <h3 className="font-semibold mb-3">Send Message</h3>
+        {error && <div className="bg-destructive/10 text-destructive text-sm rounded-lg px-3 py-2 mb-3">{error}</div>}
+        <div className="space-y-3">
           <input
             type="text"
             placeholder="Recipient JID (e.g. 1234567890@s.whatsapp.net)"
-            className="flex-1 border rounded px-3 py-2 bg-background text-sm"
+            className="w-full border rounded-lg px-3 py-2 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
             value={to}
             onChange={e => setTo(e.target.value)}
             required
           />
-        </div>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder="Message text"
-            className="flex-1 border rounded px-3 py-2 bg-background text-sm"
-            value={text}
-            onChange={e => setText(e.target.value)}
-            required
-          />
-          <button type="submit" disabled={sending} className="bg-primary text-primary-foreground px-4 py-2 rounded text-sm hover:opacity-90 disabled:opacity-50">
-            {sending ? 'Sending...' : 'Send'}
-          </button>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Message text"
+              className="flex-1 border rounded-lg px-3 py-2 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              value={text}
+              onChange={e => setText(e.target.value)}
+              required
+            />
+            <button
+              type="submit"
+              disabled={sending}
+              className="bg-primary text-primary-foreground px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
+            >
+              {sending ? 'Sending...' : 'Send'}
+            </button>
+          </div>
         </div>
       </form>
 
-      <div className="bg-card border rounded-lg">
-        <div className="p-4 border-b flex justify-between items-center">
+      <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b">
           <h3 className="font-semibold">Messages ({total})</h3>
         </div>
 
         {loading ? (
-          <p className="p-4 text-sm text-muted-foreground">Loading...</p>
+          <div className="p-8 text-center">
+            <p className="text-sm text-muted-foreground">Loading...</p>
+          </div>
         ) : messages.length === 0 ? (
-          <p className="p-4 text-sm text-muted-foreground">No messages yet.</p>
+          <div className="p-8 text-center">
+            <p className="text-sm text-muted-foreground">No messages yet.</p>
+          </div>
         ) : (
           <div className="divide-y max-h-96 overflow-y-auto">
             {messages.map(msg => (
-              <div key={msg.id} className="p-3 text-sm">
+              <div key={msg.id} className="px-5 py-4 text-sm hover:bg-muted/30 transition-colors">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className={`text-xs px-1.5 py-0.5 rounded ${
-                    msg.direction === 'out' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
+                  <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                    msg.direction === 'out' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
                   }`}>
-                    {msg.direction === 'out' ? '→' : '←'}
+                    {msg.direction === 'out' ? 'Out' : 'In'}
                   </span>
                   <span className="text-xs text-muted-foreground">{msg.message_type}</span>
-                  <span className={`text-xs ml-auto ${
+                  <span className={`text-xs ml-auto font-medium ${
                     msg.status === 'sent' ? 'text-blue-500' :
                     msg.status === 'delivered' ? 'text-green-500' :
                     msg.status === 'read' ? 'text-green-600' :
@@ -102,9 +110,9 @@ export default function MessagesLog({ sessionId }: Props) {
                   }`}>{msg.status}</span>
                 </div>
                 <p className="text-foreground">{msg.content || '(media)'}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
+                <p className="text-xs text-muted-foreground mt-1">
                   {msg.to_jid || msg.from_jid}
-                  {msg.sent_at && <> · {new Date(msg.sent_at).toLocaleString()}</>}
+                  {msg.sent_at && <> &middot; {new Date(msg.sent_at).toLocaleString()}</>}
                 </p>
               </div>
             ))}
@@ -112,19 +120,19 @@ export default function MessagesLog({ sessionId }: Props) {
         )}
 
         {totalPages > 1 && (
-          <div className="p-3 flex justify-center gap-2 border-t">
+          <div className="px-5 py-4 flex items-center justify-center gap-3 border-t">
             <button
               disabled={page <= 1}
               onClick={() => setPage(p => p - 1)}
-              className="text-xs px-2 py-1 rounded border hover:bg-muted disabled:opacity-30"
+              className="text-xs px-3 py-1.5 rounded-lg border hover:bg-muted disabled:opacity-30 transition-colors font-medium"
             >
-              Prev
+              Previous
             </button>
-            <span className="text-xs py-1 text-muted-foreground">{page} / {totalPages}</span>
+            <span className="text-xs text-muted-foreground">Page {page} of {totalPages}</span>
             <button
               disabled={page >= totalPages}
               onClick={() => setPage(p => p + 1)}
-              className="text-xs px-2 py-1 rounded border hover:bg-muted disabled:opacity-30"
+              className="text-xs px-3 py-1.5 rounded-lg border hover:bg-muted disabled:opacity-30 transition-colors font-medium"
             >
               Next
             </button>
