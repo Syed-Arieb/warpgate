@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/viper"
 )
@@ -71,7 +72,13 @@ func Load() (*Config, error) {
 	v.SetDefault("UPLOAD_DIR", "uploads")
 	v.SetDefault("UPLOAD_URL", "/uploads")
 
-	_ = v.ReadInConfig()
+	if err := v.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			fmt.Fprintln(os.Stderr, "warn: .env file not found, using defaults and env vars")
+		} else {
+			fmt.Fprintf(os.Stderr, "warn: failed to read .env file: %v\n", err)
+		}
+	}
 
 	var cfg Config
 	if err := v.Unmarshal(&cfg); err != nil {

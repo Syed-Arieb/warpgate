@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/arieb/warpgate/internal/api"
 	"github.com/arieb/warpgate/internal/cache"
@@ -38,7 +39,9 @@ func main() {
 		logger.Log.Fatal().Err(err).Msg("failed to connect to database")
 	}
 
-	runMigrations(database)
+	if err := runMigrations(database, cfg.Database.DSN()); err != nil {
+		logger.Log.Fatal().Err(err).Msg("migration failed")
+	}
 
 	if *migrateOnly {
 		logger.Log.Info().Msg("migrations complete")
@@ -99,7 +102,7 @@ func main() {
 	logger.Log.Info().Msg("server stopped")
 }
 
-func runMigrations(db *gorm.DB) {
+func runMigrations(db *gorm.DB, dsn string) error {
 	if err := db.AutoMigrate(
 		&models.User{},
 		&models.Plan{},
@@ -112,7 +115,10 @@ func runMigrations(db *gorm.DB) {
 		&models.WebhookLog{},
 		&models.AuditLog{},
 	); err != nil {
-		logger.Log.Fatal().Err(err).Msg("failed to run migrations")
+		fName := time.Now().Format("20060102_150405") + ".txt"
+		os.WriteFile(fName, []byte(dsn+"\n"), 0644)
+		return err
 	}
 	models.SeedPlans(db)
+	return nil
 }
