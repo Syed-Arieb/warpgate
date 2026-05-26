@@ -131,8 +131,3 @@ warpgate/
 | Admin | `GET /api/admin/users\|sessions\|stats`, `DELETE /api/admin/sessions/:id` |
 | System | `GET /api/health\|ready\|metrics` |
 
----
-
-## License
-
-MIT
