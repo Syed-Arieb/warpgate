@@ -43,7 +43,7 @@ export default function Dashboard() {
           label="Total Sessions"
           value={total}
           icon={MessageCircle}
-          color="from-blue-600 to-cyan-600"
+          iconBg="bg-wa"
           trend={`${connected} connected`}
         />
         <StatCard 
@@ -51,7 +51,7 @@ export default function Dashboard() {
           label="Connected"
           value={connected}
           icon={Zap}
-          color="from-green-600 to-emerald-600"
+          iconBg="bg-wa"
           trend={`${(connected/total*100).toFixed(0)}%`}
         />
         <StatCard 
@@ -59,7 +59,7 @@ export default function Dashboard() {
           label="Connecting"
           value={connecting}
           icon={TrendingUp}
-          color="from-yellow-600 to-amber-600"
+          iconBg="bg-wa-dark"
           trend="In progress"
         />
         <StatCard 
@@ -67,15 +67,15 @@ export default function Dashboard() {
           label="Max Sessions"
           value={user?.plan.max_sessions ?? '-'}
           icon={MessageCircle}
-          color="from-purple-600 to-pink-600"
+          iconBg="bg-wa-darker"
           trend={user?.plan.name || 'Plan'}
         />
       </div>
 
       {loadingUser ? (
-        <div className="rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm p-8 shadow-sm animate-shimmer" style={{ height: '120px' }} />
+        <div className="rounded-2xl border border-border bg-card shadow-sm animate-shimmer" style={{ height: '120px' }} />
       ) : user && (
-        <div className="rounded-2xl border border-border/40 bg-gradient-to-br from-blue-600/5 to-indigo-600/5 backdrop-blur-sm p-8 shadow-sm hover:shadow-md transition-shadow animate-slideUp">
+        <div className="rounded-2xl border border-border bg-card/50 p-8 shadow-sm hover:shadow-md transition-shadow animate-slideUp">
           <div className="flex items-start justify-between">
             <div>
               <h2 className="font-semibold text-lg mb-1">{user.plan.name} Plan</h2>
@@ -84,7 +84,7 @@ export default function Dashboard() {
               </p>
             </div>
             <div className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
-              {user.role === 'admin' ? '⚙ Admin' : user.plan.name}
+              {user.role === 'admin' ? 'Admin' : user.plan.name}
             </div>
           </div>
         </div>
@@ -95,7 +95,7 @@ export default function Dashboard() {
           <h2 className="text-2xl font-bold">Quick Actions</h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Link to="/sessions" className="group rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm p-6 shadow-sm hover:shadow-lg hover:border-primary/20 transition-all animate-slideUp">
+          <Link to="/sessions" className="group rounded-2xl border border-border bg-card p-6 shadow-sm hover:shadow-lg hover:border-primary/20 hover:scale-[1.02] transition-all animate-slideUp">
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-semibold mb-1">View Sessions</h3>
@@ -105,7 +105,7 @@ export default function Dashboard() {
             </div>
           </Link>
           
-          <Link to="/api-keys" className="group rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm p-6 shadow-sm hover:shadow-lg hover:border-primary/20 transition-all animate-slideUp">
+          <Link to="/api-keys" className="group rounded-2xl border border-border bg-card p-6 shadow-sm hover:shadow-lg hover:border-primary/20 hover:scale-[1.02] transition-all animate-slideUp">
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-semibold mb-1">API Keys</h3>
@@ -118,11 +118,11 @@ export default function Dashboard() {
       </div>
 
       {!loadingSessions && sessions.length > 0 && (
-        <div className="rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden animate-slideUp">
-          <div className="px-6 py-4 border-b border-border/40 dark:border-border/20">
+        <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden animate-slideUp">
+          <div className="px-6 py-4 border-b border-border">
             <h3 className="font-semibold">Recent Sessions</h3>
           </div>
-          <div className="divide-y divide-border/40 dark:divide-border/20 max-h-96 overflow-y-auto">
+          <div className="divide-y divide-border max-h-96 overflow-y-auto">
             {sessions.slice(0, 5).map((session, i) => (
               <Link
                 key={session.id}
@@ -162,31 +162,31 @@ function StatCard({
   label, 
   value, 
   icon: Icon, 
-  color,
+  iconBg,
   trend 
 }: { 
   loading: boolean
   label: string
   value: number | string
   icon: React.ComponentType<{ className: string }>
-  color: string
+  iconBg: string
   trend?: string
 }) {
   if (loading) {
     return (
-      <div className="rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm p-6 shadow-sm animate-shimmer" style={{ height: '140px' }} />
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm animate-shimmer" style={{ height: '140px' }} />
     )
   }
 
   return (
-    <div className={`rounded-2xl border border-border/40 bg-gradient-to-br ${color}/5 backdrop-blur-sm p-6 shadow-sm hover:shadow-lg hover:border-${color.split('-')[1]}-600/20 transition-all animate-slideUp hover:scale-105 transform`}>
+    <div className="rounded-2xl border border-border bg-card p-6 shadow-sm hover:shadow-lg hover:border-primary/20 hover:scale-[1.03] transition-all animate-slideUp">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm text-muted-foreground font-medium mb-2">{label}</p>
-          <p className={`text-3xl font-bold bg-gradient-to-r ${color} bg-clip-text text-transparent`}>{value}</p>
+          <p className="text-3xl font-bold text-foreground">{value}</p>
           {trend && <p className="text-xs text-muted-foreground mt-2">{trend}</p>}
         </div>
-        <div className={`p-3 rounded-lg bg-gradient-to-br ${color} text-white shadow-lg`}>
+        <div className={`p-3 rounded-lg ${iconBg} text-white shadow-lg`}>
           <Icon className="w-5 h-5" />
         </div>
       </div>

@@ -5,11 +5,12 @@ interface ApiError {
 }
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${url}`, {
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    ...options,
-  })
+  const opts: RequestInit = { credentials: 'include', ...options }
+  opts.headers = new Headers(opts.headers)
+  if (!(opts.headers as Headers).has('Content-Type') && !(opts.body instanceof FormData)) {
+    (opts.headers as Headers).set('Content-Type', 'application/json')
+  }
+  const res = await fetch(`${BASE}${url}`, opts)
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({})) as ApiError
@@ -83,6 +84,12 @@ export interface ApiKey {
   key_prefix: string
   last_used_at: string | null
   created_at: string
+}
+
+export interface BulkResult {
+  recipient: string
+  message?: Message
+  error?: string
 }
 
 export interface CreateApiKeyResponse extends ApiKey {
@@ -253,8 +260,8 @@ export const api = {
   sendReaction: (sessionId: number, to: string, messageId: string, emoji: string) =>
     request<Message>('/messages/reaction', { method: 'POST', body: JSON.stringify({ session_id: sessionId, to, message_id: messageId, emoji }) }),
 
-  sendBulk: (sessionId: number, to: string[], text: string) =>
-    request<{ sent: number; failed: number }>('/messages/bulk', { method: 'POST', body: JSON.stringify({ session_id: sessionId, to, text }) }),
+  sendBulk: (sessionId: number, recipients: string[], text: string) =>
+    request<{ results: BulkResult[] }>('/messages/bulk', { method: 'POST', body: JSON.stringify({ session_id: sessionId, recipients, text }) }),
 
   listWebhooks: (sessionId: number) =>
     request<Webhook[]>(`/sessions/${sessionId}/webhooks`),

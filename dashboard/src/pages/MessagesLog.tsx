@@ -46,7 +46,7 @@ export default function MessagesLog({ sessionId }: Props) {
 
   return (
     <div>
-      <form onSubmit={handleSend} className="bg-card border rounded-xl p-5 mb-6 shadow-sm">
+      <form onSubmit={handleSend} className="bg-card border border-border rounded-xl p-5 mb-6 shadow-sm">
         <h3 className="font-semibold mb-3">Send Message</h3>
         {error && <div className="bg-destructive/10 text-destructive text-sm rounded-lg px-3 py-2 mb-3">{error}</div>}
         <div className="space-y-3">
@@ -78,7 +78,7 @@ export default function MessagesLog({ sessionId }: Props) {
         </div>
       </form>
 
-      <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b">
           <h3 className="font-semibold">Messages ({total})</h3>
         </div>
@@ -97,16 +97,16 @@ export default function MessagesLog({ sessionId }: Props) {
               <div key={msg.id} className="px-5 py-4 text-sm hover:bg-muted/30 transition-colors">
                 <div className="flex items-center gap-2 mb-1">
                   <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
-                    msg.direction === 'out' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                    msg.direction === 'out' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
                   }`}>
                     {msg.direction === 'out' ? 'Out' : 'In'}
                   </span>
                   <span className="text-xs text-muted-foreground">{msg.message_type}</span>
                   <span className={`text-xs ml-auto font-medium ${
-                    msg.status === 'sent' ? 'text-blue-500' :
-                    msg.status === 'delivered' ? 'text-green-500' :
-                    msg.status === 'read' ? 'text-green-600' :
-                    'text-gray-400'
+                    msg.status === 'sent' ? 'text-primary' :
+                    msg.status === 'delivered' ? 'text-wa-dark' :
+                    msg.status === 'read' ? 'text-wa-darker' :
+                    'text-muted-foreground'
                   }`}>{msg.status}</span>
                 </div>
                 <p className="text-foreground">{msg.content || '(media)'}</p>

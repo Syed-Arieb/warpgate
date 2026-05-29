@@ -88,7 +88,7 @@ export default function WebhooksTab({ sessionId }: Props) {
       {error && <div className="bg-destructive/10 text-destructive text-sm rounded-lg px-3 py-2 mb-4">{error}</div>}
 
       {showCreate && (
-        <form onSubmit={handleCreate} className="bg-card border rounded-xl p-5 mb-6 space-y-4 shadow-sm">
+        <form onSubmit={handleCreate} className="bg-card border border-border rounded-xl p-5 mb-6 space-y-4 shadow-sm">
           <input
             type="text" placeholder="Webhook name"
             className="w-full border rounded-lg px-3 py-2 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -131,7 +131,7 @@ export default function WebhooksTab({ sessionId }: Props) {
       ) : (
         <div className="space-y-3">
           {webhooks.map(wh => (
-            <div key={wh.id} className="border rounded-xl bg-card shadow-sm">
+            <div key={wh.id} className="border border-border rounded-xl bg-card shadow-sm">
               <div className="p-4 flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -166,7 +166,7 @@ export default function WebhooksTab({ sessionId }: Props) {
                   ) : (
                     <div className="space-y-2 max-h-48 overflow-y-auto">
                       {logs.map(log => (
-                        <div key={log.id} className="text-xs p-3 rounded-lg bg-card border">
+                          <div key={log.id} className="text-xs p-3 rounded-lg bg-card border border-border">
                           <div className="flex justify-between items-center mb-1">
                             <span className="font-medium">{log.event_type}</span>
                             <span className={log.success ? 'text-green-600' : 'text-destructive'}>

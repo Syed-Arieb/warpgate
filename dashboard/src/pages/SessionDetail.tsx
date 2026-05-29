@@ -223,18 +223,18 @@ export default function SessionDetail() {
       </div>
 
       {qrCode && (
-        <div className="rounded-2xl border border-yellow-200 dark:border-yellow-900/40 bg-yellow-50 dark:bg-yellow-900/10 p-6 animate-slideUp inline-block">
+        <div className="rounded-2xl border border-border bg-card p-6 animate-slideUp inline-block shadow-sm">
           <p className="text-sm text-muted-foreground mb-4 font-medium">Scan with WhatsApp:</p>
           <img
             src={`data:image/svg+xml,${encodeURIComponent(renderQR(qrCode))}`}
             alt="QR"
-            className="w-52 h-52 rounded-lg border-2 border-yellow-200 dark:border-yellow-900/40"
+            className="w-52 h-52 rounded-lg border-2 border-border"
           />
         </div>
       )}
 
-      <div className="rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm overflow-hidden animate-slideUp">
-        <div className="border-b border-border/40 dark:border-border/20 flex">
+      <div className="rounded-2xl border border-border bg-card overflow-hidden animate-slideUp shadow-sm">
+        <div className="border-b border-border flex">
           {tabs.map(t => (
             <button
               key={t.key}
@@ -276,7 +276,7 @@ export default function SessionDetail() {
               <button
                 type="submit"
                 disabled={actionLoading}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-primary-foreground px-6 py-2.5 rounded-lg text-sm font-semibold hover:shadow-lg transition-all disabled:opacity-50"
+                className="inline-flex items-center gap-2 bg-wa hover:bg-[#1da851] text-white px-6 py-2.5 rounded-lg text-sm font-semibold shadow-lg shadow-wa/20 hover:shadow-xl hover:shadow-wa/30 transition-all disabled:opacity-50"
               >
                 {actionLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                 Save Changes
@@ -361,7 +361,7 @@ function ContactsTab({ sessionId }: { sessionId: number }) {
           <p className="text-sm text-muted-foreground">No contacts found.</p>
         </div>
       ) : (
-        <div className="divide-y max-h-96 overflow-y-auto rounded-lg border border-border/40 dark:border-border/20">
+        <div className="divide-y max-h-96 overflow-y-auto rounded-lg border border-border">
           {contacts.map((c, i) => (
             <div key={c.jid} className="px-5 py-3 text-sm hover:bg-muted/30 transition-colors animate-slideUp" style={{ animationDelay: `${i * 30}ms` }}>
               <p className="font-medium">{c.name || c.push_name || 'Unknown'}</p>
@@ -415,7 +415,7 @@ function GroupsTab({ sessionId }: { sessionId: number }) {
           <p className="text-sm text-muted-foreground">No groups found.</p>
         </div>
       ) : (
-        <div className="divide-y max-h-96 overflow-y-auto rounded-lg border border-border/40 dark:border-border/20">
+        <div className="divide-y max-h-96 overflow-y-auto rounded-lg border border-border">
           {groups.map((g, i) => (
             <div key={g.group_jid} className="px-5 py-3 text-sm hover:bg-muted/30 transition-colors animate-slideUp" style={{ animationDelay: `${i * 30}ms` }}>
               <p className="font-medium">{g.name}</p>

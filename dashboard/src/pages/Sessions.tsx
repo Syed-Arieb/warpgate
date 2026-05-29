@@ -77,7 +77,7 @@ export default function Sessions() {
         </div>
         <button
           onClick={() => setShowCreate(!showCreate)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-primary-foreground text-sm font-semibold hover:shadow-lg transition-all active:scale-95"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-wa hover:bg-[#1da851] text-white text-sm font-semibold shadow-lg shadow-wa/20 hover:shadow-xl hover:shadow-wa/30 transition-all active:scale-95"
         >
           <Plus className="w-4 h-4" />
           New Session
@@ -99,12 +99,12 @@ export default function Sessions() {
       )}
 
       {showCreate && (
-        <form onSubmit={handleCreate} className="rounded-2xl border border-blue-200 dark:border-blue-900/40 bg-blue-50 dark:bg-blue-900/10 p-6 animate-slideDown shadow-sm">
+        <form onSubmit={handleCreate} className="rounded-2xl border border-primary/20 bg-primary/[0.03] p-6 animate-slideDown shadow-sm">
           <div className="flex gap-3">
             <input
               type="text"
               placeholder="Enter session name"
-              className="flex-1 border rounded-lg px-4 py-2.5 bg-white dark:bg-slate-950 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all shadow-sm"
+              className="flex-1 border rounded-lg px-4 py-2.5 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all shadow-sm"
               value={newName}
               onChange={e => setNewName(e.target.value)}
               required
@@ -129,7 +129,7 @@ export default function Sessions() {
       ) : (
         <>
           {sessions.length > 0 && (
-            <div className="rounded-lg border border-border/40 bg-card/50 backdrop-blur-sm px-4 py-2.5 flex items-center gap-2">
+            <div className="rounded-lg border border-border bg-card px-4 py-2.5 flex items-center gap-2">
               <Search className="w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
@@ -142,8 +142,8 @@ export default function Sessions() {
           )}
 
           {filtered.length === 0 ? (
-            <div className="rounded-2xl border-2 border-dashed border-border bg-card/50 p-12 text-center animate-slideUp">
-              <MessageCircle className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+            <div className="rounded-2xl border-2 border-dashed border-border bg-card p-12 text-center animate-slideUp">
+              <MessageCircle className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3" />
               <p className="text-muted-foreground font-medium">No sessions yet</p>
               <p className="text-sm text-muted-foreground mt-1">Create one to get started with WhatsApp integration</p>
             </div>
@@ -155,7 +155,7 @@ export default function Sessions() {
                   <Link
                     key={session.id}
                     to={`/sessions/${session.id}`}
-                    className="rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm p-5 hover:shadow-lg hover:border-primary/20 transition-all group cursor-pointer animate-slideUp hover:scale-[1.01] transform"
+                    className="rounded-2xl border border-border bg-card p-5 hover:shadow-lg hover:border-primary/20 transition-all group cursor-pointer animate-slideUp hover:scale-[1.01] transform"
                     style={{ animationDelay: `${i * 30}ms` }}
                   >
                     <div className="flex items-center justify-between">

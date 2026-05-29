@@ -31,17 +31,17 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-sm animate-slideUp">
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg mb-4 transform hover:scale-110 transition-transform">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-wa shadow-lg shadow-wa/20 mb-4 transform hover:scale-110 transition-transform">
             <span className="text-2xl font-bold text-white">W</span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Warpgate</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Warpgate</h1>
           <p className="text-sm text-muted-foreground mt-2">Create your account</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-card border rounded-2xl p-8 shadow-xl animate-slideUp">
+        <form onSubmit={handleSubmit} className="bg-card border border-border rounded-2xl p-8 shadow-xl animate-slideUp">
           {error && (
             <div className="bg-destructive/10 text-destructive text-sm rounded-lg px-4 py-3 mb-6 flex items-start gap-3 animate-slideDown border border-destructive/20">
               <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
@@ -103,7 +103,7 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading || password.length < 8}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-primary-foreground py-3 rounded-lg text-sm font-semibold hover:shadow-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              className="w-full bg-wa hover:bg-[#1da851] text-white py-3 rounded-lg text-sm font-semibold shadow-lg shadow-wa/20 hover:shadow-xl hover:shadow-wa/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               {loading ? 'Creating account...' : 'Create account'}

@@ -17,7 +17,7 @@ export default function ForgotPassword() {
           <h1 className="text-2xl font-bold tracking-tight">Warpgate</h1>
           <p className="text-sm text-muted-foreground mt-1">Reset your password</p>
         </div>
-        <div className="rounded-xl border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
           {sent ? (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">

@@ -91,7 +91,7 @@ export default function Account() {
         <p className="text-muted-foreground mt-1">Manage your profile and security</p>
       </div>
 
-      <div className="rounded-2xl border border-blue-200 dark:border-blue-900/40 bg-blue-50 dark:bg-blue-900/10 p-6 animate-slideUp">
+      <div className="rounded-2xl border border-primary/20 bg-primary/[0.03] p-6 animate-slideUp">
         <h2 className="font-semibold mb-2">{user.plan.name} Plan</h2>
         <p className="text-sm text-muted-foreground">
           {user.plan.max_sessions} sessions &middot; {user.plan.max_api_keys} API keys &middot; {user.plan.max_webhooks} webhooks
@@ -99,7 +99,7 @@ export default function Account() {
       </div>
 
       <div className="grid gap-6 max-w-2xl animate-slideUp">
-        <div className="rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm p-8 shadow-sm">
+        <div className="rounded-2xl border border-border bg-card p-8 shadow-sm">
           <h2 className="text-xl font-semibold mb-6">Profile Information</h2>
           {error && (
             <div className="bg-destructive/10 text-destructive text-sm rounded-lg px-4 py-3 mb-6 flex items-start gap-3 border border-destructive/20 animate-slideDown">
@@ -136,14 +136,14 @@ export default function Account() {
             </div>
             <button
               type="submit"
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-primary-foreground px-6 py-2.5 rounded-lg text-sm font-semibold hover:shadow-lg transition-all active:scale-95"
+              className="inline-flex items-center gap-2 bg-wa hover:bg-[#1da851] text-white px-6 py-2.5 rounded-lg text-sm font-semibold shadow-lg shadow-wa/20 hover:shadow-xl hover:shadow-wa/30 transition-all active:scale-95"
             >
               Save Changes
             </button>
           </form>
         </div>
 
-        <div className="rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm p-8 shadow-sm">
+        <div className="rounded-2xl border border-border bg-card p-8 shadow-sm">
           <h2 className="text-xl font-semibold mb-6">Change Password</h2>
           {pwError && (
             <div className="bg-destructive/10 text-destructive text-sm rounded-lg px-4 py-3 mb-6 flex items-start gap-3 border border-destructive/20 animate-slideDown">
@@ -199,7 +199,7 @@ export default function Account() {
             <button
               type="submit"
               disabled={pwLoading || pwNew.length < 8 || pwNew !== pwConfirm}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-primary-foreground px-6 py-2.5 rounded-lg text-sm font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+              className="inline-flex items-center gap-2 bg-wa hover:bg-[#1da851] text-white px-6 py-2.5 rounded-lg text-sm font-semibold shadow-lg shadow-wa/20 hover:shadow-xl hover:shadow-wa/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
             >
               {pwLoading && <Loader2 className="w-4 h-4 animate-spin" />}
               {pwLoading ? 'Changing...' : 'Change Password'}

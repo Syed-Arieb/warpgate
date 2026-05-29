@@ -43,18 +43,18 @@ export default function Admin() {
         </div>
       ) : stats && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 animate-slideUp">
-          <StatBox label="Users" value={stats.total_users} color="from-blue-600 to-cyan-600" />
-          <StatBox label="Sessions" value={stats.total_sessions} color="from-purple-600 to-pink-600" />
-          <StatBox label="Connected" value={stats.connected_sessions} color="from-green-600 to-emerald-600" />
-          <StatBox label="Messages" value={stats.total_messages} color="from-yellow-600 to-amber-600" />
-          <StatBox label="Webhooks" value={stats.total_webhooks} color="from-indigo-600 to-blue-600" />
-          <StatBox label="Active" value={stats.active_engines} color="from-rose-600 to-red-600" />
+          <StatBox label="Users" value={stats.total_users} />
+          <StatBox label="Sessions" value={stats.total_sessions} />
+          <StatBox label="Connected" value={stats.connected_sessions} />
+          <StatBox label="Messages" value={stats.total_messages} />
+          <StatBox label="Webhooks" value={stats.total_webhooks} />
+          <StatBox label="Active" value={stats.active_engines} />
         </div>
       )}
 
       <div className="grid lg:grid-cols-2 gap-6">
-        <div className="rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden animate-slideUp">
-          <div className="px-6 py-4 border-b border-border/40 dark:border-border/20 flex items-center gap-3">
+        <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden animate-slideUp">
+          <div className="px-6 py-4 border-b border-border flex items-center gap-3">
             <Users className="w-5 h-5 text-muted-foreground" />
             <h2 className="text-lg font-semibold">Recent Users</h2>
           </div>
@@ -68,7 +68,7 @@ export default function Admin() {
               No users yet
             </div>
           ) : (
-            <div className="divide-y divide-border/40 dark:divide-border/20 max-h-96 overflow-y-auto">
+            <div className="divide-y divide-border max-h-96 overflow-y-auto">
               {users.users.map((u, i) => (
                 <div key={u.id} className="px-6 py-4 hover:bg-muted/20 transition-colors animate-slideUp" style={{ animationDelay: `${i * 30}ms` }}>
                   <div className="flex items-start justify-between">
@@ -92,7 +92,7 @@ export default function Admin() {
           )}
 
           {users && users.total > users.page * users.limit && (
-            <div className="px-6 py-4 border-t border-border/40 dark:border-border/20">
+            <div className="px-6 py-4 border-t border-border">
               <button
                 onClick={() => setUserPage(p => p + 1)}
                 className="w-full text-sm font-medium text-primary hover:underline transition-colors"
@@ -103,8 +103,8 @@ export default function Admin() {
           )}
         </div>
 
-        <div className="rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden animate-slideUp">
-          <div className="px-6 py-4 border-b border-border/40 dark:border-border/20 flex items-center gap-3">
+        <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden animate-slideUp">
+          <div className="px-6 py-4 border-b border-border flex items-center gap-3">
             <Wifi className="w-5 h-5 text-muted-foreground" />
             <h2 className="text-lg font-semibold">Recent Sessions</h2>
           </div>
@@ -118,7 +118,7 @@ export default function Admin() {
               No sessions yet
             </div>
           ) : (
-            <div className="divide-y divide-border/40 dark:divide-border/20 max-h-96 overflow-y-auto">
+            <div className="divide-y divide-border max-h-96 overflow-y-auto">
               {sessions.sessions.map((s, i) => (
                 <div key={s.id} className="px-6 py-4 hover:bg-muted/20 transition-colors animate-slideUp" style={{ animationDelay: `${i * 30}ms` }}>
                   <div className="flex items-start justify-between">
@@ -144,7 +144,7 @@ export default function Admin() {
           )}
 
           {sessions && sessions.total > sessions.page * sessions.limit && (
-            <div className="px-6 py-4 border-t border-border/40 dark:border-border/20">
+            <div className="px-6 py-4 border-t border-border">
               <button
                 onClick={() => setSessionPage(p => p + 1)}
                 className="w-full text-sm font-medium text-primary hover:underline transition-colors"
@@ -159,11 +159,11 @@ export default function Admin() {
   )
 }
 
-function StatBox({ label, value, color }: { label: string; value: number | string; color: string }) {
+function StatBox({ label, value }: { label: string; value: number | string }) {
   return (
-    <div className={`rounded-2xl border border-border/40 bg-gradient-to-br ${color}/5 backdrop-blur-sm p-5 shadow-sm hover:shadow-lg hover:border-${color.split('-')[1]}-600/20 transition-all hover:scale-105 transform`}>
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm hover:shadow-lg hover:border-primary/20 transition-all hover:scale-105 transform">
       <p className="text-xs text-muted-foreground font-medium mb-2">{label}</p>
-      <p className={`text-2xl font-bold bg-gradient-to-r ${color} bg-clip-text text-transparent`}>{value}</p>
+      <p className="text-2xl font-bold text-foreground">{value}</p>
     </div>
   )
 }
