@@ -8,11 +8,12 @@ import (
 )
 
 type Handler struct {
-	authService *services.AuthService
+	authService  *services.AuthService
+	cookieSecure bool
 }
 
-func NewHandler(authService *services.AuthService) *Handler {
-	return &Handler{authService: authService}
+func NewHandler(authService *services.AuthService, cookieSecure bool) *Handler {
+	return &Handler{authService: authService, cookieSecure: cookieSecure}
 }
 
 func (h *Handler) Register(c *fiber.Ctx) error {
@@ -39,7 +40,7 @@ func (h *Handler) Register(c *fiber.Ctx) error {
 		})
 	}
 
-	setAuthCookies(c, resp.AccessToken, resp.RefreshToken)
+	setAuthCookies(c, resp.AccessToken, resp.RefreshToken, h.cookieSecure)
 
 	return c.Status(fiber.StatusCreated).JSON(resp)
 }
@@ -59,7 +60,7 @@ func (h *Handler) Login(c *fiber.Ctx) error {
 		})
 	}
 
-	setAuthCookies(c, resp.AccessToken, resp.RefreshToken)
+	setAuthCookies(c, resp.AccessToken, resp.RefreshToken, h.cookieSecure)
 
 	return c.JSON(resp)
 }
@@ -83,17 +84,23 @@ func (h *Handler) Refresh(c *fiber.Ctx) error {
 		})
 	}
 
-	setAuthCookies(c, resp.AccessToken, resp.RefreshToken)
+	setAuthCookies(c, resp.AccessToken, resp.RefreshToken, h.cookieSecure)
 
 	return c.JSON(resp)
 }
 
-func setAuthCookies(c *fiber.Ctx, accessToken, refreshToken string) {
+func (h *Handler) Logout(c *fiber.Ctx) error {
+	c.ClearCookie("access_token")
+	c.ClearCookie("refresh_token")
+	return c.JSON(fiber.Map{"status": "logged out"})
+}
+
+func setAuthCookies(c *fiber.Ctx, accessToken, refreshToken string, secure bool) {
 	c.Cookie(&fiber.Cookie{
 		Name:     "access_token",
 		Value:    accessToken,
 		HTTPOnly: true,
-		Secure:   false,
+		Secure:   secure,
 		SameSite: "Lax",
 		Path:     "/",
 	})
@@ -101,7 +108,7 @@ func setAuthCookies(c *fiber.Ctx, accessToken, refreshToken string) {
 		Name:     "refresh_token",
 		Value:    refreshToken,
 		HTTPOnly: true,
-		Secure:   false,
+		Secure:   secure,
 		SameSite: "Lax",
 		Path:     "/",
 	})

@@ -22,6 +22,7 @@ import (
 	"github.com/arieb/warpgate/internal/storage"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
@@ -31,8 +32,10 @@ func New(cfg *config.Config, db *gorm.DB, rdb *redis.Client, waManager *wengine.
 		AppName: "warpgate",
 	})
 
+	app.Use(recover.New())
+
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:5173",
+		AllowOrigins:     cfg.CORSOrigin,
 		AllowCredentials: true,
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-API-Key",
 		AllowMethods:     "GET, POST, PUT, DELETE, OPTIONS",
@@ -50,7 +53,7 @@ func New(cfg *config.Config, db *gorm.DB, rdb *redis.Client, waManager *wengine.
 	webhookSvc := services.NewWebhookService(db)
 	auditSvc := services.NewAuditService(db)
 
-	authHandler := auth.NewHandler(authService)
+	authHandler := auth.NewHandler(authService, cfg.CookieSecure)
 	userHandler := user.NewHandler(userService, apiKeyService)
 	sessionHandler := session.NewHandler(sessionService)
 	engineHandler := engineapi.NewHandler(waManager, db)
@@ -72,6 +75,7 @@ func New(cfg *config.Config, db *gorm.DB, rdb *redis.Client, waManager *wengine.
 	authGroup.Post("/register", middleware.RateLimit(rdb, 5, 1*time.Minute), authHandler.Register)
 	authGroup.Post("/login", middleware.RateLimit(rdb, 10, 1*time.Minute), authHandler.Login)
 	authGroup.Post("/refresh", authHandler.Refresh)
+	authGroup.Post("/logout", authHandler.Logout)
 
 	authMw := middleware.Auth(authService, apiKeyService)
 	apiKeyRL := middleware.APIKeyRateLimit(rdb)
@@ -94,6 +98,7 @@ func New(cfg *config.Config, db *gorm.DB, rdb *redis.Client, waManager *wengine.
 	usersGroup.Get("/me", userHandler.GetMe)
 	usersGroup.Put("/me", userHandler.UpdateMe)
 	usersGroup.Get("/me/audit", auditHandler.List)
+	usersGroup.Put("/me/password", userHandler.ChangePassword)
 
 	apiKeysGroup := usersGroup.Group("/me/api-keys")
 	apiKeysGroup.Post("/", userHandler.CreateAPIKey)

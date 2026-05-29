@@ -163,6 +163,19 @@ export interface PaginatedWebhookLogs {
   limit: number
 }
 
+export interface Contact {
+  jid: string
+  name: string
+  push_name: string
+}
+
+export interface Group {
+  id: number
+  group_jid: string
+  name: string
+  member_count: number
+}
+
 export const api = {
   register: (body: { email: string; password: string; name: string }) =>
     request<AuthResponse>('/auth/register', { method: 'POST', body: JSON.stringify(body) }),
@@ -173,17 +186,26 @@ export const api = {
   refresh: () =>
     request<AuthResponse>('/auth/refresh', { method: 'POST' }),
 
+  logout: () =>
+    request<void>('/auth/logout', { method: 'POST' }),
+
   getMe: () =>
     request<User>('/users/me'),
 
   updateMe: (body: { name?: string; email?: string }) =>
     request<User>('/users/me', { method: 'PUT', body: JSON.stringify(body) }),
 
+  changePassword: (oldPassword: string, newPassword: string) =>
+    request<{ status: string }>('/users/me/password', { method: 'PUT', body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }) }),
+
   listApiKeys: () =>
     request<ApiKey[]>('/users/me/api-keys/'),
 
   createApiKey: (name: string) =>
     request<CreateApiKeyResponse>('/users/me/api-keys/', { method: 'POST', body: JSON.stringify({ name }) }),
+
+  updateApiKey: (id: number, body: { name?: string; allowed_ips?: string; daily_limit?: number }) =>
+    request<ApiKey>(`/users/me/api-keys/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
 
   deleteApiKey: (id: number) =>
     request<void>(`/users/me/api-keys/${id}`, { method: 'DELETE' }),
@@ -228,6 +250,12 @@ export const api = {
   sendTextMessage: (sessionId: number, to: string, text: string) =>
     request<Message>('/messages/text', { method: 'POST', body: JSON.stringify({ session_id: sessionId, to, text }) }),
 
+  sendReaction: (sessionId: number, to: string, messageId: string, emoji: string) =>
+    request<Message>('/messages/reaction', { method: 'POST', body: JSON.stringify({ session_id: sessionId, to, message_id: messageId, emoji }) }),
+
+  sendBulk: (sessionId: number, to: string[], text: string) =>
+    request<{ sent: number; failed: number }>('/messages/bulk', { method: 'POST', body: JSON.stringify({ session_id: sessionId, to, text }) }),
+
   listWebhooks: (sessionId: number) =>
     request<Webhook[]>(`/sessions/${sessionId}/webhooks`),
 
@@ -235,7 +263,7 @@ export const api = {
     request<Webhook>(`/sessions/${sessionId}/webhooks/${webhookId}`),
 
   createWebhook: (sessionId: number, body: { name: string; url: string; secret?: string; events: string[] }) =>
-    request<Webhook>(`/sessions/${sessionId}/webhooks`, { method: 'POST', body: JSON.stringify(body) }),
+    request<CreateWebhookResponse>(`/sessions/${sessionId}/webhooks`, { method: 'POST', body: JSON.stringify(body) }),
 
   updateWebhook: (sessionId: number, webhookId: number, body: { name?: string; url?: string; secret?: string; events?: string[]; active?: boolean }) =>
     request<Webhook>(`/sessions/${sessionId}/webhooks/${webhookId}`, { method: 'PUT', body: JSON.stringify(body) }),
@@ -247,16 +275,16 @@ export const api = {
     request<PaginatedWebhookLogs>(`/sessions/${sessionId}/webhooks/${webhookId}/logs?page=${page}&limit=${limit}`),
 
   listContacts: (sessionId: number) =>
-    request<Array<{ jid: string; name: string; push_name: string }>>(`/sessions/${sessionId}/contacts`),
+    request<Contact[]>(`/sessions/${sessionId}/contacts`),
 
   listGroups: (sessionId: number) =>
-    request<Array<{ id: number; group_jid: string; name: string; member_count: number }>>(`/sessions/${sessionId}/groups`),
+    request<Group[]>(`/sessions/${sessionId}/groups`),
 
   createGroup: (sessionId: number, name: string, participants: string[]) =>
-    request<any>(`/sessions/${sessionId}/groups`, { method: 'POST', body: JSON.stringify({ name, participants }) }),
+    request<Group>(`/sessions/${sessionId}/groups`, { method: 'POST', body: JSON.stringify({ name, participants }) }),
 
   getGroup: (sessionId: number, groupJid: string) =>
-    request<any>(`/sessions/${sessionId}/groups/${encodeURIComponent(groupJid)}`),
+    request<Group>(`/sessions/${sessionId}/groups/${encodeURIComponent(groupJid)}`),
 
   deleteGroup: (sessionId: number, groupJid: string) =>
     request<void>(`/sessions/${sessionId}/groups/${encodeURIComponent(groupJid)}`, { method: 'DELETE' }),
@@ -265,14 +293,14 @@ export const api = {
     request<PaginatedAuditLogs>(`/users/me/audit?page=${page}&limit=${limit}`),
 
   adminListUsers: (page = 1, limit = 50) =>
-    request<{ users: User[]; total: number; page: number; limit: number }>(`/admin/users?page=${page}&limit=${limit}`, { method: 'GET' }),
+    request<{ users: User[]; total: number; page: number; limit: number }>(`/admin/users?page=${page}&limit=${limit}`),
 
   adminListSessions: (page = 1, limit = 50, userId?: number) =>
     request<{ sessions: Session[]; total: number; page: number; limit: number }>(
-      `/admin/sessions?page=${page}&limit=${limit}${userId ? `&user_id=${userId}` : ''}`, { method: 'GET' }),
+      `/admin/sessions?page=${page}&limit=${limit}${userId ? `&user_id=${userId}` : ''}`),
 
   adminGetStats: () =>
-    request<SystemStats>('/admin/stats', { method: 'GET' }),
+    request<SystemStats>('/admin/stats'),
 
   adminDeleteSession: (id: number) =>
     request<void>(`/admin/sessions/${id}`, { method: 'DELETE' }),

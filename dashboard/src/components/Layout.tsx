@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { api, type User } from '../lib/api'
 
@@ -10,14 +10,19 @@ const navItems = [
   { path: '/admin', label: 'Admin', icon: '⚙', adminOnly: true },
 ]
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function Layout() {
   const location = useLocation()
   const navigate = useNavigate()
   const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
   const [dark, setDark] = useState(() => localStorage.getItem('theme') === 'dark')
 
   useEffect(() => {
-    api.getMe().then(setUser).catch(() => navigate('/login'))
+    setLoading(true)
+    api.getMe()
+      .then(setUser)
+      .catch(() => navigate('/login'))
+      .finally(() => setLoading(false))
   }, [navigate])
 
   useEffect(() => {
@@ -26,13 +31,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, [dark])
 
   const handleLogout = async () => {
-    document.cookie = 'access_token=; path=/; max-age=0'
-    document.cookie = 'refresh_token=; path=/; max-age=0'
+    try { await api.logout() } catch {}
     navigate('/login')
   }
 
   const isActive = (path: string) =>
     location.pathname === path || (path !== '/' && location.pathname.startsWith(path))
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -85,7 +97,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       <main className="ml-56 p-8">
         <div className="max-w-5xl mx-auto">
-          {children}
+          <Outlet />
         </div>
       </main>
     </div>

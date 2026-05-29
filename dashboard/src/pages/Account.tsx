@@ -6,15 +6,24 @@ import type { User } from '../lib/api'
 export default function Account() {
   const navigate = useNavigate()
   const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
   const [saved, setSaved] = useState(false)
 
+  const [pwOld, setPwOld] = useState('')
+  const [pwNew, setPwNew] = useState('')
+  const [pwError, setPwError] = useState('')
+  const [pwSaved, setPwSaved] = useState(false)
+  const [pwLoading, setPwLoading] = useState(false)
+
   const load = () => {
+    setLoading(true)
     api.getMe()
       .then(u => { setUser(u); setName(u.name); setEmail(u.email) })
       .catch(() => navigate('/login'))
+      .finally(() => setLoading(false))
   }
 
   useEffect(load, [navigate])
@@ -32,6 +41,29 @@ export default function Account() {
     }
   }
 
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPwError('')
+    setPwSaved(false)
+    setPwLoading(true)
+    try {
+      await api.changePassword(pwOld, pwNew)
+      setPwOld('')
+      setPwNew('')
+      setPwSaved(true)
+    } catch (err) {
+      setPwError(err instanceof Error ? err.message : 'Password change failed')
+    } finally {
+      setPwLoading(false)
+    }
+  }
+
+  if (loading) return (
+    <div className="flex items-center justify-center py-16">
+      <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
+
   if (!user) return null
 
   return (
@@ -39,14 +71,10 @@ export default function Account() {
       <h1 className="text-2xl font-bold mb-6">Account</h1>
 
       {error && (
-        <div className="bg-destructive/10 text-destructive text-sm rounded-lg px-4 py-3 mb-6">
-          {error}
-        </div>
+        <div className="bg-destructive/10 text-destructive text-sm rounded-lg px-4 py-3 mb-6">{error}</div>
       )}
       {saved && (
-        <div className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 text-sm rounded-lg px-4 py-3 mb-6">
-          Settings saved successfully.
-        </div>
+        <div className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 text-sm rounded-lg px-4 py-3 mb-6">Saved.</div>
       )}
 
       <div className="rounded-xl border bg-card p-5 shadow-sm mb-6 max-w-lg">
@@ -56,34 +84,62 @@ export default function Account() {
         </p>
       </div>
 
-      <div className="rounded-xl border bg-card p-6 shadow-sm max-w-lg">
-        <form onSubmit={handleUpdate} className="space-y-4">
-          <div>
-            <label className="block mb-1.5 text-sm font-medium">Name</label>
-            <input
-              type="text"
-              className="w-full border rounded-lg px-3 py-2 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              required
-            />
-          </div>
+      <div className="grid gap-6 max-w-lg">
+        <div className="rounded-xl border bg-card p-6 shadow-sm">
+          <h2 className="font-semibold mb-4">Profile</h2>
+          <form onSubmit={handleUpdate} className="space-y-4">
+            <div>
+              <label className="block mb-1.5 text-sm font-medium">Name</label>
+              <input
+                type="text"
+                className="w-full border rounded-lg px-3 py-2 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                value={name} onChange={e => setName(e.target.value)} required
+              />
+            </div>
+            <div>
+              <label className="block mb-1.5 text-sm font-medium">Email</label>
+              <input
+                type="email"
+                className="w-full border rounded-lg px-3 py-2 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                value={email} onChange={e => setEmail(e.target.value)} required
+              />
+            </div>
+            <button type="submit" className="bg-primary text-primary-foreground px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity">
+              Save
+            </button>
+          </form>
+        </div>
 
-          <div>
-            <label className="block mb-1.5 text-sm font-medium">Email</label>
-            <input
-              type="email"
-              className="w-full border rounded-lg px-3 py-2 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
-          </div>
-
-          <button type="submit" className="bg-primary text-primary-foreground px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity">
-            Save
-          </button>
-        </form>
+        <div className="rounded-xl border bg-card p-6 shadow-sm">
+          <h2 className="font-semibold mb-4">Change Password</h2>
+          {pwError && <div className="bg-destructive/10 text-destructive text-sm rounded-lg px-3 py-2 mb-4">{pwError}</div>}
+          {pwSaved && <div className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 text-sm rounded-lg px-3 py-2 mb-4">Password changed.</div>}
+          <form onSubmit={handleChangePassword} className="space-y-4">
+            <div>
+              <label className="block mb-1.5 text-sm font-medium">Current Password</label>
+              <input
+                type="password"
+                className="w-full border rounded-lg px-3 py-2 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                value={pwOld} onChange={e => setPwOld(e.target.value)} required
+              />
+            </div>
+            <div>
+              <label className="block mb-1.5 text-sm font-medium">New Password</label>
+              <input
+                type="password"
+                className="w-full border rounded-lg px-3 py-2 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                value={pwNew} onChange={e => setPwNew(e.target.value)} required minLength={8}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={pwLoading}
+              className="bg-primary text-primary-foreground px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
+            >
+              {pwLoading ? 'Changing...' : 'Change Password'}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   )

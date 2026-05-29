@@ -8,10 +8,12 @@ import (
 )
 
 type Config struct {
-	Port      string `mapstructure:"PORT"`
-	LogLevel  string `mapstructure:"LOG_LEVEL"`
-	UploadDir string `mapstructure:"UPLOAD_DIR"`
-	UploadURL string `mapstructure:"UPLOAD_URL"`
+	Port        string `mapstructure:"PORT"`
+	LogLevel    string `mapstructure:"LOG_LEVEL"`
+	UploadDir   string `mapstructure:"UPLOAD_DIR"`
+	UploadURL   string `mapstructure:"UPLOAD_URL"`
+	CORSOrigin  string `mapstructure:"CORS_ORIGIN"`
+	CookieSecure bool  `mapstructure:"COOKIE_SECURE"`
 
 	Database DatabaseConfig `mapstructure:",squash"`
 	Redis    RedisConfig    `mapstructure:",squash"`
@@ -71,6 +73,8 @@ func Load() (*Config, error) {
 	v.SetDefault("JWT_REFRESH_EXPIRY", "168h")
 	v.SetDefault("UPLOAD_DIR", "uploads")
 	v.SetDefault("UPLOAD_URL", "/uploads")
+	v.SetDefault("CORS_ORIGIN", "http://localhost:5173")
+	v.SetDefault("COOKIE_SECURE", false)
 
 	if err := v.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {

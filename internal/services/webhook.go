@@ -1,9 +1,10 @@
 package services
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"strings"
 
 	"github.com/arieb/warpgate/internal/models"
@@ -37,7 +38,8 @@ func generateSecret() string {
 	const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	b := make([]byte, 32)
 	for i := range b {
-		b[i] = chars[rand.Intn(len(chars))]
+		n, _ := rand.Int(rand.Reader, big.NewInt(int64(len(chars))))
+		b[i] = chars[n.Int64()]
 	}
 	return string(b)
 }

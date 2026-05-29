@@ -121,6 +121,31 @@ func (h *Handler) UpdateAPIKey(c *fiber.Ctx) error {
 	return c.JSON(key)
 }
 
+func (h *Handler) ChangePassword(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(uint)
+
+	var input struct {
+		OldPassword string `json:"old_password"`
+		NewPassword string `json:"new_password"`
+	}
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+	}
+	if input.OldPassword == "" || input.NewPassword == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "old_password and new_password are required"})
+	}
+
+	if err := h.userService.ChangePassword(userID, input.OldPassword, input.NewPassword); err != nil {
+		status := fiber.StatusInternalServerError
+		if err.Error() == "current password is incorrect" {
+			status = fiber.StatusBadRequest
+		}
+		return c.Status(status).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"status": "password changed"})
+}
+
 func (h *Handler) DeleteAPIKey(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(uint)
 

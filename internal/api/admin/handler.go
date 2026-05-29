@@ -122,5 +122,5 @@ func (h *Handler) DeleteSession(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "session not found"})
 	}
 
-	return c.JSON(fiber.Map{"status": "deleted"})
+	return c.SendStatus(fiber.StatusNoContent)
 }

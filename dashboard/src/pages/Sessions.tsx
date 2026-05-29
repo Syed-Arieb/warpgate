@@ -12,15 +12,18 @@ const statusColors: Record<string, string> = {
 
 export default function Sessions() {
   const [sessions, setSessions] = useState<Session[]>([])
+  const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
   const [newName, setNewName] = useState('')
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
   const load = () => {
+    setLoading(true)
     api.listSessions()
       .then(setSessions)
       .catch(() => navigate('/login'))
+      .finally(() => setLoading(false))
   }
 
   useEffect(load, [navigate])
@@ -86,7 +89,11 @@ export default function Sessions() {
         </form>
       )}
 
-      {sessions.length === 0 ? (
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : sessions.length === 0 ? (
         <div className="rounded-xl border-2 border-dashed p-12 text-center">
           <p className="text-muted-foreground">No sessions yet. Create one to get started.</p>
         </div>

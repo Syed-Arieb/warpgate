@@ -1,6 +1,7 @@
 package message
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -84,7 +85,7 @@ func (s *Service) SendMedia(ctx context.Context, userID, sessionID uint, to stri
 		dbMsg.Content = &input.Caption
 	}
 
-	if err := s.store.Upload(fmt.Sprintf("%d/%s", sessionID, resp.ID), input.Data); err == nil {
+	if err := s.store.Upload(fmt.Sprintf("%d/%s", sessionID, resp.ID), bytes.NewReader(data)); err == nil {
 		url, _ := s.store.URL(fmt.Sprintf("%d/%s", sessionID, resp.ID))
 		dbMsg.MediaURL = &url
 	}

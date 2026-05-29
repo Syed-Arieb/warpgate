@@ -8,6 +8,7 @@ import ApiKeys from './pages/ApiKeys'
 import Sessions from './pages/Sessions'
 import SessionDetail from './pages/SessionDetail'
 import Admin from './pages/Admin'
+import Layout from './components/Layout'
 
 export default function App() {
   return (
@@ -16,12 +17,16 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/account" element={<Account />} />
-        <Route path="/api-keys" element={<ApiKeys />} />
-        <Route path="/sessions" element={<Sessions />} />
-        <Route path="/sessions/:id" element={<SessionDetail />} />
-        <Route path="/admin" element={<Admin />} />
+
+        <Route element={<Layout />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/account" element={<Account />} />
+          <Route path="/api-keys" element={<ApiKeys />} />
+          <Route path="/sessions" element={<Sessions />} />
+          <Route path="/sessions/:id" element={<SessionDetail />} />
+          <Route path="/admin" element={<Admin />} />
+        </Route>
+
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
