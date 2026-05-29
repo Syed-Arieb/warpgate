@@ -17,7 +17,19 @@ func NewHandler(sessionService *services.SessionService) *Handler {
 }
 
 func (h *Handler) Create(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userIDVal := c.Locals("user_id")
+	if userIDVal == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "unauthorized",
+		})
+	}
+
+	userID, ok := userIDVal.(uint)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "invalid user context",
+		})
+	}
 
 	var input services.CreateSessionInput
 	if err := c.BodyParser(&input); err != nil {
@@ -47,7 +59,19 @@ func (h *Handler) Create(c *fiber.Ctx) error {
 }
 
 func (h *Handler) List(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userIDVal := c.Locals("user_id")
+	if userIDVal == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "unauthorized",
+		})
+	}
+
+	userID, ok := userIDVal.(uint)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "invalid user context",
+		})
+	}
 
 	sessions, err := h.sessionService.List(userID)
 	if err != nil {
@@ -60,7 +84,19 @@ func (h *Handler) List(c *fiber.Ctx) error {
 }
 
 func (h *Handler) Get(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userIDVal := c.Locals("user_id")
+	if userIDVal == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "unauthorized",
+		})
+	}
+
+	userID, ok := userIDVal.(uint)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "invalid user context",
+		})
+	}
 
 	idStr := c.Params("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -81,7 +117,19 @@ func (h *Handler) Get(c *fiber.Ctx) error {
 }
 
 func (h *Handler) Update(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userIDVal := c.Locals("user_id")
+	if userIDVal == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "unauthorized",
+		})
+	}
+
+	userID, ok := userIDVal.(uint)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "invalid user context",
+		})
+	}
 
 	idStr := c.Params("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -109,7 +157,19 @@ func (h *Handler) Update(c *fiber.Ctx) error {
 }
 
 func (h *Handler) Delete(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userIDVal := c.Locals("user_id")
+	if userIDVal == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "unauthorized",
+		})
+	}
+
+	userID, ok := userIDVal.(uint)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "invalid user context",
+		})
+	}
 
 	idStr := c.Params("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)

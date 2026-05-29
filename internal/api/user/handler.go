@@ -18,7 +18,19 @@ func NewHandler(userService *services.UserService, apiKeyService *services.APIKe
 }
 
 func (h *Handler) GetMe(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userIDVal := c.Locals("user_id")
+	if userIDVal == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "unauthorized",
+		})
+	}
+
+	userID, ok := userIDVal.(uint)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "invalid user context",
+		})
+	}
 
 	user, err := h.userService.GetMe(userID)
 	if err != nil {
@@ -31,7 +43,19 @@ func (h *Handler) GetMe(c *fiber.Ctx) error {
 }
 
 func (h *Handler) UpdateMe(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userIDVal := c.Locals("user_id")
+	if userIDVal == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "unauthorized",
+		})
+	}
+
+	userID, ok := userIDVal.(uint)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "invalid user context",
+		})
+	}
 
 	var input services.UpdateProfileInput
 	if err := c.BodyParser(&input); err != nil {
@@ -58,7 +82,19 @@ func (h *Handler) UpdateMe(c *fiber.Ctx) error {
 }
 
 func (h *Handler) CreateAPIKey(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userIDVal := c.Locals("user_id")
+	if userIDVal == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "unauthorized",
+		})
+	}
+
+	userID, ok := userIDVal.(uint)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "invalid user context",
+		})
+	}
 
 	var input services.CreateAPIKeyInput
 	if err := c.BodyParser(&input); err != nil {
@@ -88,7 +124,19 @@ func (h *Handler) CreateAPIKey(c *fiber.Ctx) error {
 }
 
 func (h *Handler) ListAPIKeys(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userIDVal := c.Locals("user_id")
+	if userIDVal == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "unauthorized",
+		})
+	}
+
+	userID, ok := userIDVal.(uint)
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "invalid user context",
+		})
+	}
 
 	keys, err := h.apiKeyService.List(userID)
 	if err != nil {
