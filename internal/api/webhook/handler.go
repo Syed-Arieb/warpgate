@@ -29,7 +29,7 @@ func getUserID(c *fiber.Ctx) (uint, error) {
 }
 
 func parseWebhookID(c *fiber.Ctx) (sessionID, webhookID uint, err error) {
-	sid, e := strconv.ParseUint(c.Params("session_id"), 10, 64)
+	sid, e := strconv.ParseUint(	c.Params("id"), 10, 64)
 	if e != nil {
 		return 0, 0, fiber.NewError(fiber.StatusBadRequest, "invalid session_id")
 	}
@@ -46,7 +46,7 @@ func (h *Handler) Create(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	sessionID, err := strconv.ParseUint(c.Params("session_id"), 10, 64)
+	sessionID, err := strconv.ParseUint(	c.Params("id"), 10, 64)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid session_id"})
 	}
@@ -74,7 +74,7 @@ func (h *Handler) List(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	sessionID, err := strconv.ParseUint(c.Params("session_id"), 10, 64)
+	sessionID, err := strconv.ParseUint(	c.Params("id"), 10, 64)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid session_id"})
 	}

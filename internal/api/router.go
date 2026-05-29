@@ -130,8 +130,8 @@ func New(cfg *config.Config, db *gorm.DB, rdb *redis.Client, waManager *wengine.
 	apiKeysGroup.Delete("/:id", userHandler.DeleteAPIKey)
 
 	sessionsGroup := apiGroup.Group("/sessions", protectedMw)
-	sessionsGroup.Post("", sessionHandler.Create)
-	sessionsGroup.Get("", sessionHandler.List)
+	sessionsGroup.Post("/", sessionHandler.Create)
+	sessionsGroup.Get("/", sessionHandler.List)
 	sessionsGroup.Get("/:id", sessionHandler.Get)
 	sessionsGroup.Put("/:id", sessionHandler.Update)
 	sessionsGroup.Delete("/:id", sessionHandler.Delete)
@@ -141,29 +141,29 @@ func New(cfg *config.Config, db *gorm.DB, rdb *redis.Client, waManager *wengine.
 	sessionsGroup.Get("/:id/qr", engineHandler.QR)
 	sessionsGroup.Get("/:id/status", engineHandler.Status)
 
+	contactsGroup := sessionsGroup.Group("/:id/contacts")
+	contactsGroup.Get("/", contactHandler.List)
+
+	groupsGroup := sessionsGroup.Group("/:id/groups")
+	groupsGroup.Get("/", groupHandler.List)
+	groupsGroup.Post("/", groupHandler.Create)
+	groupsGroup.Get("/:group_id", groupHandler.Get)
+	groupsGroup.Delete("/:group_id", groupHandler.Delete)
+
+	webhookGroup := sessionsGroup.Group("/:id/webhooks")
+	webhookGroup.Post("/", webhookHandler.Create)
+	webhookGroup.Get("/", webhookHandler.List)
+	webhookGroup.Get("/:webhook_id", webhookHandler.Get)
+	webhookGroup.Put("/:webhook_id", webhookHandler.Update)
+	webhookGroup.Delete("/:webhook_id", webhookHandler.Delete)
+	webhookGroup.Get("/:webhook_id/logs", webhookHandler.GetLogs)
+
 	msgGroup := apiGroup.Group("/messages", protectedMw)
 	msgGroup.Post("/text", msgHandler.SendText)
 	msgGroup.Post("/media", msgHandler.SendMedia)
 	msgGroup.Post("/reaction", msgHandler.SendReaction)
 	msgGroup.Post("/bulk", msgHandler.SendBulk)
 	msgGroup.Get("/:session_id", msgHandler.GetHistory)
-
-	contactsGroup := apiGroup.Group("/sessions/:session_id/contacts", protectedMw)
-	contactsGroup.Get("", contactHandler.List)
-
-	groupsGroup := apiGroup.Group("/sessions/:session_id/groups", protectedMw)
-	groupsGroup.Get("", groupHandler.List)
-	groupsGroup.Post("", groupHandler.Create)
-	groupsGroup.Get("/:group_id", groupHandler.Get)
-	groupsGroup.Delete("/:group_id", groupHandler.Delete)
-
-	webhookGroup := apiGroup.Group("/sessions/:session_id/webhooks", protectedMw)
-	webhookGroup.Post("", webhookHandler.Create)
-	webhookGroup.Get("", webhookHandler.List)
-	webhookGroup.Get("/:webhook_id", webhookHandler.Get)
-	webhookGroup.Put("/:webhook_id", webhookHandler.Update)
-	webhookGroup.Delete("/:webhook_id", webhookHandler.Delete)
-	webhookGroup.Get("/:webhook_id/logs", webhookHandler.GetLogs)
 
 	adminGroup := apiGroup.Group("/admin", protectedMw, middleware.AdminOnly())
 	adminGroup.Get("/users", adminHandler.ListUsers)

@@ -32,7 +32,7 @@ func (h *Handler) List(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
 	}
-	sessionID, err := c.ParamsInt("session_id")
+	sessionID, err := c.ParamsInt("id")
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid session_id"})
 	}
