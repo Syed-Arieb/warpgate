@@ -122,11 +122,12 @@ type webhookPayload struct {
 }
 
 func (d *Dispatcher) dispatchWithRetry(wh *models.Webhook, eventName string, evt engine.Event) {
+	evtCopy := evt
 	payload := webhookPayload{
 		Event:     eventName,
-		SessionID: evt.SessionID,
+		SessionID: evtCopy.SessionID,
 		Timestamp: time.Now().UTC().Format(time.RFC3339),
-		Data:      evt.Data,
+		Data:      evtCopy.Data,
 	}
 
 	payloadBytes, _ := json.Marshal(payload)

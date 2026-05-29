@@ -1,6 +1,7 @@
 package audit
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/arieb/warpgate/internal/services"
@@ -15,8 +16,23 @@ func NewHandler(svc *services.AuditService) *Handler {
 	return &Handler{svc: svc}
 }
 
+func getUserID(c *fiber.Ctx) (uint, error) {
+	userIDVal := c.Locals("user_id")
+	if userIDVal == nil {
+		return 0, fmt.Errorf("unauthorized")
+	}
+	userID, ok := userIDVal.(uint)
+	if !ok {
+		return 0, fmt.Errorf("invalid user context")
+	}
+	return userID, nil
+}
+
 func (h *Handler) List(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+	}
 
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	limit, _ := strconv.Atoi(c.Query("limit", "50"))

@@ -3,11 +3,11 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/arieb/warpgate/internal/api"
 	"github.com/arieb/warpgate/internal/cache"
@@ -68,9 +68,11 @@ func main() {
 		waManager.ReconnectAll()
 	}
 
-	store, err := storage.NewLocalAdapter(cfg.UploadDir, cfg.UploadURL)
+	var store storage.Adapter
+	store, err = storage.NewLocalAdapter(cfg.UploadDir, cfg.UploadURL)
 	if err != nil {
 		logger.Log.Warn().Err(err).Msg("local storage not available, media uploads will fail")
+		store = storage.NewNoopAdapter()
 	}
 
 	dispatcher := jobs.NewDispatcher(database, waManager)
@@ -115,9 +117,7 @@ func runMigrations(db *gorm.DB, dsn string) error {
 		&models.WebhookLog{},
 		&models.AuditLog{},
 	); err != nil {
-		fName := time.Now().Format("20060102_150405") + ".txt"
-		os.WriteFile(fName, []byte(dsn+"\n"), 0644)
-		return err
+		return fmt.Errorf("auto migrate failed: %w", err)
 	}
 	models.SeedPlans(db)
 	return nil

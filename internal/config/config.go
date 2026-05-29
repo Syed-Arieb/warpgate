@@ -14,6 +14,7 @@ type Config struct {
 	UploadURL   string `mapstructure:"UPLOAD_URL"`
 	CORSOrigin  string `mapstructure:"CORS_ORIGIN"`
 	CookieSecure bool  `mapstructure:"COOKIE_SECURE"`
+	ReturnErrors bool  `mapstructure:"RETURN_ERRORS"`
 
 	Database DatabaseConfig `mapstructure:",squash"`
 	Redis    RedisConfig    `mapstructure:",squash"`
@@ -75,6 +76,7 @@ func Load() (*Config, error) {
 	v.SetDefault("UPLOAD_URL", "/uploads")
 	v.SetDefault("CORS_ORIGIN", "http://localhost:5173")
 	v.SetDefault("COOKIE_SECURE", false)
+	v.SetDefault("RETURN_ERRORS", false)
 
 	if err := v.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
@@ -87,6 +89,10 @@ func Load() (*Config, error) {
 	var cfg Config
 	if err := v.Unmarshal(&cfg); err != nil {
 		return nil, fmt.Errorf("unmarshal config: %w", err)
+	}
+
+	if len(cfg.JWT.JWTSecret) < 16 {
+		fmt.Fprintln(os.Stderr, "warn: JWT_SECRET is too short, use at least 16 characters")
 	}
 
 	return &cfg, nil

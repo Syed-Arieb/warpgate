@@ -90,8 +90,9 @@ func (m *Manager) Logout(sessionID uint) error {
 
 func (m *Manager) SubscribeQR(sessionID uint) <-chan string {
 	ch := make(chan string, QRBufferSize)
-	subs, _ := m.qrSubs.LoadOrStore(sessionID, &[]chan string{})
-	*subs.(*[]chan string) = append(*subs.(*[]chan string), ch)
+	val, _ := m.qrSubs.LoadOrStore(sessionID, &sync.Map{})
+	subs := val.(*sync.Map)
+	subs.Store(ch, true)
 	return ch
 }
 
@@ -100,14 +101,8 @@ func (m *Manager) UnsubscribeQR(sessionID uint, ch <-chan string) {
 	if !ok {
 		return
 	}
-	subs := val.(*[]chan string)
-	filtered := make([]chan string, 0, len(*subs))
-	for _, s := range *subs {
-		if s != ch {
-			filtered = append(filtered, s)
-		}
-	}
-	*subs = filtered
+	subs := val.(*sync.Map)
+	subs.Delete(ch)
 }
 
 func (m *Manager) broadcastQR(sessionID uint, code string) {
@@ -115,12 +110,21 @@ func (m *Manager) broadcastQR(sessionID uint, code string) {
 	if !ok {
 		return
 	}
-	for _, ch := range *val.(*[]chan string) {
+	subs, ok := val.(*sync.Map)
+	if !ok {
+		return
+	}
+	subs.Range(func(key, _ interface{}) bool {
+		ch, ok := key.(chan string)
+		if !ok {
+			return true
+		}
 		select {
 		case ch <- code:
 		default:
 		}
-	}
+		return true
+	})
 }
 
 func (m *Manager) broadcastEvent(evt Event) {

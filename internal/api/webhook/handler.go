@@ -1,6 +1,7 @@
 package webhook
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/arieb/warpgate/internal/services"
@@ -13,6 +14,18 @@ type Handler struct {
 
 func NewHandler(service *services.WebhookService) *Handler {
 	return &Handler{service: service}
+}
+
+func getUserID(c *fiber.Ctx) (uint, error) {
+	userIDVal := c.Locals("user_id")
+	if userIDVal == nil {
+		return 0, fmt.Errorf("unauthorized")
+	}
+	userID, ok := userIDVal.(uint)
+	if !ok {
+		return 0, fmt.Errorf("invalid user context")
+	}
+	return userID, nil
 }
 
 func parseWebhookID(c *fiber.Ctx) (sessionID, webhookID uint, err error) {
@@ -28,7 +41,11 @@ func parseWebhookID(c *fiber.Ctx) (sessionID, webhookID uint, err error) {
 }
 
 func (h *Handler) Create(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+	}
+
 	sessionID, err := strconv.ParseUint(c.Params("session_id"), 10, 64)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid session_id"})
@@ -52,7 +69,11 @@ func (h *Handler) Create(c *fiber.Ctx) error {
 }
 
 func (h *Handler) List(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+	}
+
 	sessionID, err := strconv.ParseUint(c.Params("session_id"), 10, 64)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid session_id"})
@@ -67,7 +88,11 @@ func (h *Handler) List(c *fiber.Ctx) error {
 }
 
 func (h *Handler) Get(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+	}
+
 	sessionID, webhookID, err := parseWebhookID(c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -82,7 +107,11 @@ func (h *Handler) Get(c *fiber.Ctx) error {
 }
 
 func (h *Handler) Update(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+	}
+
 	sessionID, webhookID, err := parseWebhookID(c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -102,7 +131,11 @@ func (h *Handler) Update(c *fiber.Ctx) error {
 }
 
 func (h *Handler) Delete(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+	}
+
 	sessionID, webhookID, err := parseWebhookID(c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -116,7 +149,11 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 }
 
 func (h *Handler) GetLogs(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+	}
+
 	sessionID, webhookID, err := parseWebhookID(c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})

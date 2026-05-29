@@ -33,7 +33,7 @@ func newClient(device *store.Device, sessionID, userID uint, db *gorm.DB, manage
 }
 
 func (c *Client) Connect() error {
-	if c.client.Store.ID != nil {
+	if c.client.Store != nil && c.client.Store.ID != nil {
 		c.updateStatus(models.SessionStatusConnecting)
 	}
 
@@ -87,6 +87,9 @@ func (c *Client) handleEvent(raw interface{}) {
 		if evt.Info.IsFromMe {
 			return
 		}
+		if evt.Message == nil {
+			return
+		}
 		msgType := models.MessageTypeText
 		var content *string
 		if evt.Message.Conversation != nil {
@@ -102,12 +105,14 @@ func (c *Client) handleEvent(raw interface{}) {
 		} else if evt.Message.DocumentMessage != nil {
 			msgType = models.MessageTypeDocument
 		}
+		fromJID := evt.Info.Sender.String()
+		toJID := evt.Info.Chat.String()
 		dbMsg := models.Message{
 			SessionID:   c.sessionID,
 			UserID:      c.userID,
 			Direction:   models.MessageDirectionIn,
-			FromJID:     evt.Info.Sender.String(),
-			ToJID:       evt.Info.Chat.String(),
+			FromJID:     fromJID,
+			ToJID:       toJID,
 			MessageType: msgType,
 			Content:     content,
 			Status:      models.MessageStatusDelivered,
@@ -118,7 +123,8 @@ func (c *Client) handleEvent(raw interface{}) {
 		if err := c.db.Create(&dbMsg).Error; err != nil {
 			logger.Log.Error().Err(err).Uint("session_id", c.sessionID).Msg("store incoming message")
 		}
-		c.manager.PublishEvent(Event{Type: EventMessage, SessionID: c.sessionID, Data: dbMsg})
+		dbMsgCopy := dbMsg
+		c.manager.PublishEvent(Event{Type: EventMessage, SessionID: c.sessionID, Data: &dbMsgCopy})
 
 	case *events.Receipt:
 		var status string
@@ -142,16 +148,13 @@ func (c *Client) handleEvent(raw interface{}) {
 }
 
 func (c *Client) updateStatus(status string) {
-	var session models.Session
-	c.db.Model(&session).Where("id = ?", c.sessionID).Update("status", status)
+	c.db.Model(&models.Session{}).Where("id = ?", c.sessionID).Update("status", status)
 }
 
 func saveDeviceID(db *gorm.DB, sessionID uint, deviceID string) {
-	var session models.Session
-	db.Model(&session).Where("id = ?", sessionID).Update("device_id", deviceID)
+	db.Model(&models.Session{}).Where("id = ?", sessionID).Update("device_id", deviceID)
 }
 
 func clearDeviceID(db *gorm.DB, sessionID uint) {
-	var session models.Session
-	db.Model(&session).Where("id = ?", sessionID).Update("device_id", nil)
+	db.Model(&models.Session{}).Where("id = ?", sessionID).Update("device_id", nil)
 }

@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type LocalAdapter struct {
@@ -23,8 +24,23 @@ func NewLocalAdapter(baseDir, baseURL string) (*LocalAdapter, error) {
 	return &LocalAdapter{baseDir: abs, baseURL: baseURL}, nil
 }
 
+func (l *LocalAdapter) safePath(path string) (string, error) {
+	clean := filepath.Clean(path)
+	if clean != path {
+		clean = filepath.Clean(path)
+	}
+	full := filepath.Join(l.baseDir, clean)
+	if !strings.HasPrefix(full, filepath.Clean(l.baseDir)+string(os.PathSeparator)) && full != filepath.Clean(l.baseDir) {
+		return "", fmt.Errorf("path traversal detected: %s", path)
+	}
+	return full, nil
+}
+
 func (l *LocalAdapter) Upload(path string, r io.Reader) error {
-	full := filepath.Join(l.baseDir, path)
+	full, err := l.safePath(path)
+	if err != nil {
+		return err
+	}
 	if err := os.MkdirAll(filepath.Dir(full), 0755); err != nil {
 		return fmt.Errorf("create dir: %w", err)
 	}
@@ -40,7 +56,10 @@ func (l *LocalAdapter) Upload(path string, r io.Reader) error {
 }
 
 func (l *LocalAdapter) Download(path string) (io.ReadCloser, error) {
-	full := filepath.Join(l.baseDir, path)
+	full, err := l.safePath(path)
+	if err != nil {
+		return nil, err
+	}
 	f, err := os.Open(full)
 	if err != nil {
 		return nil, fmt.Errorf("open file: %w", err)
@@ -49,11 +68,19 @@ func (l *LocalAdapter) Download(path string) (io.ReadCloser, error) {
 }
 
 func (l *LocalAdapter) Delete(path string) error {
-	return os.Remove(filepath.Join(l.baseDir, path))
+	full, err := l.safePath(path)
+	if err != nil {
+		return err
+	}
+	return os.Remove(full)
 }
 
 func (l *LocalAdapter) Exists(path string) (bool, error) {
-	_, err := os.Stat(filepath.Join(l.baseDir, path))
+	full, err := l.safePath(path)
+	if err != nil {
+		return false, err
+	}
+	_, err = os.Stat(full)
 	if os.IsNotExist(err) {
 		return false, nil
 	}

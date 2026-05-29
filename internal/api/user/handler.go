@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/arieb/warpgate/internal/services"
@@ -17,19 +18,22 @@ func NewHandler(userService *services.UserService, apiKeyService *services.APIKe
 	return &Handler{userService: userService, apiKeyService: apiKeyService}
 }
 
-func (h *Handler) GetMe(c *fiber.Ctx) error {
+func getUserID(c *fiber.Ctx) (uint, error) {
 	userIDVal := c.Locals("user_id")
 	if userIDVal == nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "unauthorized",
-		})
+		return 0, fmt.Errorf("unauthorized")
 	}
-
 	userID, ok := userIDVal.(uint)
 	if !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "invalid user context",
-		})
+		return 0, fmt.Errorf("invalid user context")
+	}
+	return userID, nil
+}
+
+func (h *Handler) GetMe(c *fiber.Ctx) error {
+	userID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	user, err := h.userService.GetMe(userID)
@@ -43,18 +47,9 @@ func (h *Handler) GetMe(c *fiber.Ctx) error {
 }
 
 func (h *Handler) UpdateMe(c *fiber.Ctx) error {
-	userIDVal := c.Locals("user_id")
-	if userIDVal == nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "unauthorized",
-		})
-	}
-
-	userID, ok := userIDVal.(uint)
-	if !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "invalid user context",
-		})
+	userID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	var input services.UpdateProfileInput
@@ -82,18 +77,9 @@ func (h *Handler) UpdateMe(c *fiber.Ctx) error {
 }
 
 func (h *Handler) CreateAPIKey(c *fiber.Ctx) error {
-	userIDVal := c.Locals("user_id")
-	if userIDVal == nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "unauthorized",
-		})
-	}
-
-	userID, ok := userIDVal.(uint)
-	if !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "invalid user context",
-		})
+	userID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	var input services.CreateAPIKeyInput
@@ -124,18 +110,9 @@ func (h *Handler) CreateAPIKey(c *fiber.Ctx) error {
 }
 
 func (h *Handler) ListAPIKeys(c *fiber.Ctx) error {
-	userIDVal := c.Locals("user_id")
-	if userIDVal == nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "unauthorized",
-		})
-	}
-
-	userID, ok := userIDVal.(uint)
-	if !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "invalid user context",
-		})
+	userID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	keys, err := h.apiKeyService.List(userID)
@@ -149,7 +126,10 @@ func (h *Handler) ListAPIKeys(c *fiber.Ctx) error {
 }
 
 func (h *Handler) UpdateAPIKey(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+	}
 
 	idStr := c.Params("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -170,7 +150,10 @@ func (h *Handler) UpdateAPIKey(c *fiber.Ctx) error {
 }
 
 func (h *Handler) ChangePassword(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+	}
 
 	var input struct {
 		OldPassword string `json:"old_password"`
@@ -195,7 +178,10 @@ func (h *Handler) ChangePassword(c *fiber.Ctx) error {
 }
 
 func (h *Handler) DeleteAPIKey(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+	}
 
 	idStr := c.Params("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)

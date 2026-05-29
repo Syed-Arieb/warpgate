@@ -1,6 +1,8 @@
 package contact
 
 import (
+	"fmt"
+
 	"github.com/arieb/warpgate/internal/services"
 	"github.com/gofiber/fiber/v2"
 )
@@ -13,8 +15,23 @@ func NewHandler(service *services.ContactService) *Handler {
 	return &Handler{service: service}
 }
 
+func getUserID(c *fiber.Ctx) (uint, error) {
+	userIDVal := c.Locals("user_id")
+	if userIDVal == nil {
+		return 0, fmt.Errorf("unauthorized")
+	}
+	userID, ok := userIDVal.(uint)
+	if !ok {
+		return 0, fmt.Errorf("invalid user context")
+	}
+	return userID, nil
+}
+
 func (h *Handler) List(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+	}
 	sessionID, err := c.ParamsInt("session_id")
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid session_id"})

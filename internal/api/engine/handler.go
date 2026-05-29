@@ -20,8 +20,23 @@ func NewHandler(manager *engine.Manager, db *gorm.DB) *Handler {
 	return &Handler{manager: manager, db: db}
 }
 
+func (h *Handler) getUserID(c *fiber.Ctx) (uint, error) {
+	userIDVal := c.Locals("user_id")
+	if userIDVal == nil {
+		return 0, fmt.Errorf("unauthorized")
+	}
+	userID, ok := userIDVal.(uint)
+	if !ok {
+		return 0, fmt.Errorf("invalid user context")
+	}
+	return userID, nil
+}
+
 func (h *Handler) verifyOwnership(c *fiber.Ctx, sessionID uint) error {
-	userID := c.Locals("user_id").(uint)
+	userID, err := h.getUserID(c)
+	if err != nil {
+		return err
+	}
 	var session models.Session
 	if err := h.db.Where("id = ? AND user_id = ?", sessionID, userID).First(&session).Error; err != nil {
 		return fmt.Errorf("session not found")

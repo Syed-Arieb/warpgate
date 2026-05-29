@@ -70,6 +70,10 @@ func (s *UserService) ChangePassword(userID uint, oldPassword, newPassword strin
 		return errors.New("current password is incorrect")
 	}
 
+	if err := ValidatePassword(newPassword); err != nil {
+		return err
+	}
+
 	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return fmt.Errorf("hash password: %w", err)

@@ -1,6 +1,7 @@
 package message
 
 import (
+	"fmt"
 	"strconv"
 
 	msgService "github.com/arieb/warpgate/internal/services/message"
@@ -16,8 +17,23 @@ func NewHandler(service *msgService.Service) *Handler {
 	return &Handler{service: service}
 }
 
+func getUserID(c *fiber.Ctx) (uint, error) {
+	userIDVal := c.Locals("user_id")
+	if userIDVal == nil {
+		return 0, fmt.Errorf("unauthorized")
+	}
+	userID, ok := userIDVal.(uint)
+	if !ok {
+		return 0, fmt.Errorf("invalid user context")
+	}
+	return userID, nil
+}
+
 func (h *Handler) SendText(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+	}
 
 	var input struct {
 		SessionID uint   `json:"session_id"`
@@ -44,7 +60,10 @@ func (h *Handler) SendText(c *fiber.Ctx) error {
 }
 
 func (h *Handler) SendMedia(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+	}
 
 	sessionIDStr := c.FormValue("session_id")
 	sessionID, err := strconv.ParseUint(sessionIDStr, 10, 64)
@@ -101,7 +120,10 @@ func (h *Handler) SendMedia(c *fiber.Ctx) error {
 }
 
 func (h *Handler) SendReaction(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+	}
 
 	var input struct {
 		SessionID   uint   `json:"session_id"`
@@ -125,7 +147,10 @@ func (h *Handler) SendReaction(c *fiber.Ctx) error {
 }
 
 func (h *Handler) SendBulk(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+	}
 
 	var input struct {
 		SessionID  uint     `json:"session_id"`
@@ -148,7 +173,10 @@ func (h *Handler) SendBulk(c *fiber.Ctx) error {
 }
 
 func (h *Handler) GetHistory(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+	}
 
 	sessionIDStr := c.Params("session_id")
 	sessionID, err := strconv.ParseUint(sessionIDStr, 10, 64)

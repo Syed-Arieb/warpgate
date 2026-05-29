@@ -101,15 +101,17 @@ func setAuthCookies(c *fiber.Ctx, accessToken, refreshToken string, secure bool)
 		Value:    accessToken,
 		HTTPOnly: true,
 		Secure:   secure,
-		SameSite: "Lax",
+		SameSite: "Strict",
 		Path:     "/",
+		MaxAge:   900,
 	})
 	c.Cookie(&fiber.Cookie{
 		Name:     "refresh_token",
 		Value:    refreshToken,
 		HTTPOnly: true,
 		Secure:   secure,
-		SameSite: "Lax",
+		SameSite: "Strict",
 		Path:     "/",
+		MaxAge:   604800,
 	})
 }

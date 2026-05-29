@@ -29,7 +29,29 @@ import (
 
 func New(cfg *config.Config, db *gorm.DB, rdb *redis.Client, waManager *wengine.Manager, store storage.Adapter) *fiber.App {
 	app := fiber.New(fiber.Config{
-		AppName: "warpgate",
+		AppName:      "warpgate",
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 60 * time.Second,
+		IdleTimeout:  120 * time.Second,
+		BodyLimit:    10 * 1024 * 1024,
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			code := fiber.StatusInternalServerError
+			if e, ok := err.(*fiber.Error); ok {
+				code = e.Code
+			}
+			if cfg.ReturnErrors {
+				return c.Status(code).JSON(fiber.Map{
+					"error": err.Error(),
+				})
+			}
+			message := "internal server error"
+			if code < 500 {
+				message = err.Error()
+			}
+			return c.Status(code).JSON(fiber.Map{
+				"error": message,
+			})
+		},
 	})
 
 	app.Use(recover.New())
@@ -41,6 +63,7 @@ func New(cfg *config.Config, db *gorm.DB, rdb *redis.Client, waManager *wengine.
 		AllowMethods:     "GET, POST, PUT, DELETE, OPTIONS",
 	}))
 
+	app.Use(securityHeaders)
 	app.Use(structuredLogging)
 
 	authService := services.NewAuthService(db, &cfg.JWT)
@@ -174,6 +197,13 @@ func structuredLogging(c *fiber.Ctx) error {
 		Str("ip", c.IP()).
 		Msg("request")
 	return err
+}
+
+func securityHeaders(c *fiber.Ctx) error {
+	c.Set("X-Content-Type-Options", "nosniff")
+	c.Set("X-Frame-Options", "DENY")
+	c.Set("X-XSS-Protection", "1; mode=block")
+	return c.Next()
 }
 
 func readyHandler(db *gorm.DB, rdb *redis.Client, waManager *wengine.Manager) fiber.Handler {
