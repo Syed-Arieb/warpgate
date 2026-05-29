@@ -4,6 +4,7 @@ import { api } from '../lib/api'
 import type { Session, Contact, Group } from '../lib/api'
 import MessagesLog from './MessagesLog'
 import WebhooksTab from './WebhooksTab'
+import { ChevronLeft, Power, LogOut, Zap, AlertCircle, Loader2, Trash2 } from 'lucide-react'
 
 type Tab = 'settings' | 'messages' | 'webhooks' | 'contacts' | 'groups'
 
@@ -17,6 +18,7 @@ export default function SessionDetail() {
   const [qrCode, setQrCode] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [tab, setTab] = useState<Tab>('settings')
+  const [actionLoading, setActionLoading] = useState(false)
   const unsubscribeRef = useRef<(() => void) | null>(null)
   const sessionId = Number(id)
 
@@ -39,6 +41,7 @@ export default function SessionDetail() {
     if (!session) return
     setError('')
     setQrCode(null)
+    setActionLoading(true)
     try {
       await api.startSession(session.id)
       setSession(prev => prev ? { ...prev, status: 'connecting' } : prev)
@@ -51,12 +54,15 @@ export default function SessionDetail() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start')
       load()
+    } finally {
+      setActionLoading(false)
     }
   }
 
   const handleStop = async () => {
     if (!session) return
     setError('')
+    setActionLoading(true)
     try {
       await api.stopSession(session.id)
       setQrCode(null)
@@ -64,12 +70,15 @@ export default function SessionDetail() {
       load()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to stop')
+    } finally {
+      setActionLoading(false)
     }
   }
 
   const handleLogout = async () => {
     if (!session) return
     setError('')
+    setActionLoading(true)
     try {
       await api.logoutSession(session.id)
       setQrCode(null)
@@ -77,6 +86,8 @@ export default function SessionDetail() {
       load()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to logout')
+    } finally {
+      setActionLoading(false)
     }
   }
 
@@ -84,19 +95,27 @@ export default function SessionDetail() {
     e.preventDefault()
     if (!session) return
     setError('')
+    setActionLoading(true)
     try {
       const updated = await api.updateSession(session.id, { name, phone_number: phone || undefined })
       setSession(updated)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Update failed')
+    } finally {
+      setActionLoading(false)
     }
   }
 
-  if (loading) return (
-    <div className="flex items-center justify-center py-16">
-      <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-    </div>
-  )
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-muted-foreground">Loading session...</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!session) return null
 
@@ -108,89 +127,169 @@ export default function SessionDetail() {
     { key: 'webhooks', label: 'Webhooks' },
   ]
 
+  const statusColor = {
+    connected: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+    connecting: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
+    disconnected: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300',
+    banned: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+  }
+
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold">{session.name}</h1>
-        <button onClick={() => navigate('/sessions')} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-          &larr; Back to Sessions
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <button
+          onClick={() => navigate('/sessions')}
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground px-3 py-2 rounded-lg hover:bg-muted/40 transition-all"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Back to Sessions
         </button>
+        <h1 className="text-3xl font-bold tracking-tight">{session.name}</h1>
+        <div className="w-20" />
       </div>
 
-      {error && <div className="bg-destructive/10 text-destructive text-sm rounded-lg px-4 py-3 mb-6">{error}</div>}
+      {error && (
+        <div className="bg-destructive/10 text-destructive text-sm rounded-lg px-4 py-3 flex items-start gap-3 animate-slideDown border border-destructive/20">
+          <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
 
-      <div className="flex items-center gap-3 mb-6">
-        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-          session.status === 'connected' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' :
-          session.status === 'connecting' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300' :
-          session.status === 'banned' ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' :
-          'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
-        }`}>{session.status}</span>
+      <div className="flex items-center gap-4 flex-wrap">
+        <span className={`text-xs font-semibold px-3 py-1.5 rounded-full ${statusColor[session.status as keyof typeof statusColor] || statusColor.disconnected}`}>
+          {session.status}
+        </span>
 
         {session.status === 'disconnected' && (
-          <button onClick={handleStart} className="bg-green-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">Connect</button>
+          <button
+            onClick={handleStart}
+            disabled={actionLoading}
+            className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-50"
+          >
+            {actionLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+            <Power className="w-4 h-4" />
+            Connect
+          </button>
         )}
+
         {session.status === 'connecting' && (
           <>
-            <button onClick={handleStop} className="bg-yellow-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-yellow-700 transition-colors">Cancel</button>
-            {qrCode && <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span className="inline-block w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />QR ready
-            </div>}
+            <button
+              onClick={handleStop}
+              disabled={actionLoading}
+              className="inline-flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-50"
+            >
+              {actionLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+              <Zap className="w-4 h-4" />
+              Cancel
+            </button>
+            {qrCode && (
+              <div className="flex items-center gap-2 text-sm text-yellow-700 dark:text-yellow-300 px-3 py-2 rounded-lg bg-yellow-100 dark:bg-yellow-900/30">
+                <span className="inline-block w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
+                QR ready to scan
+              </div>
+            )}
           </>
         )}
+
         {session.status === 'connected' && (
           <>
-            <button onClick={handleStop} className="bg-yellow-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-yellow-700 transition-colors">Disconnect</button>
-            <button onClick={handleLogout} className="bg-red-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors">Logout</button>
+            <button
+              onClick={handleStop}
+              disabled={actionLoading}
+              className="inline-flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-50"
+            >
+              {actionLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+              <Power className="w-4 h-4" />
+              Disconnect
+            </button>
+            <button
+              onClick={handleLogout}
+              disabled={actionLoading}
+              className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-50"
+            >
+              {actionLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+              <LogOut className="w-4 h-4" />
+              Logout
+            </button>
           </>
+        )}
+
+        {session.status === 'banned' && (
+          <div className="text-sm text-destructive px-3 py-2 rounded-lg bg-destructive/10">
+            This session has been banned. Please create a new one.
+          </div>
         )}
       </div>
 
       {qrCode && (
-        <div className="mb-6 p-5 bg-card border rounded-xl inline-block">
-          <p className="text-xs text-muted-foreground mb-3">Scan with WhatsApp:</p>
+        <div className="rounded-2xl border border-yellow-200 dark:border-yellow-900/40 bg-yellow-50 dark:bg-yellow-900/10 p-6 animate-slideUp inline-block">
+          <p className="text-sm text-muted-foreground mb-4 font-medium">Scan with WhatsApp:</p>
           <img
             src={`data:image/svg+xml,${encodeURIComponent(renderQR(qrCode))}`}
             alt="QR"
-            className="w-44 h-44 rounded-lg"
+            className="w-52 h-52 rounded-lg border-2 border-yellow-200 dark:border-yellow-900/40"
           />
         </div>
       )}
 
-      <div className="border-b mb-6">
-        <div className="flex gap-6">
+      <div className="rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm overflow-hidden animate-slideUp">
+        <div className="border-b border-border/40 dark:border-border/20 flex">
           {tabs.map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)}
-              className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
-                tab === t.key ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`px-6 py-4 text-sm font-medium border-b-2 transition-all ${
+                tab === t.key
+                  ? 'border-primary text-foreground'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}
-            >{t.label}</button>
+            >
+              {t.label}
+            </button>
           ))}
         </div>
-      </div>
 
-      {tab === 'settings' && (
-        <div className="bg-card border rounded-xl p-6 shadow-sm max-w-lg">
-          <form onSubmit={handleUpdate} className="space-y-4">
-            <div>
-              <label className="block mb-1.5 text-sm font-medium">Name</label>
-              <input type="text" className="w-full border rounded-lg px-3 py-2 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                value={name} onChange={e => setName(e.target.value)} required />
-            </div>
-            <div>
-              <label className="block mb-1.5 text-sm font-medium">Phone number</label>
-              <input type="text" className="w-full border rounded-lg px-3 py-2 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1234567890" />
-            </div>
-            <button type="submit" className="bg-primary text-primary-foreground px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity">Save</button>
-          </form>
+        <div className="p-6">
+          {tab === 'settings' && (
+            <form onSubmit={handleUpdate} className="space-y-5 max-w-lg">
+              <div>
+                <label className="block mb-2 text-sm font-medium">Session Name</label>
+                <input
+                  type="text"
+                  className="w-full border rounded-lg px-4 py-2.5 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all shadow-sm"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block mb-2 text-sm font-medium">Phone Number (Optional)</label>
+                <input
+                  type="text"
+                  className="w-full border rounded-lg px-4 py-2.5 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all shadow-sm"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                  placeholder="+1234567890"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={actionLoading}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-primary-foreground px-6 py-2.5 rounded-lg text-sm font-semibold hover:shadow-lg transition-all disabled:opacity-50"
+              >
+                {actionLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                Save Changes
+              </button>
+            </form>
+          )}
+
+          {tab === 'messages' && <MessagesLog sessionId={sessionId} />}
+          {tab === 'webhooks' && <WebhooksTab sessionId={sessionId} />}
+          {tab === 'contacts' && <ContactsTab sessionId={sessionId} />}
+          {tab === 'groups' && <GroupsTab sessionId={sessionId} />}
         </div>
-      )}
-
-      {tab === 'messages' && <MessagesLog sessionId={sessionId} />}
-      {tab === 'webhooks' && <WebhooksTab sessionId={sessionId} />}
-      {tab === 'contacts' && <ContactsTab sessionId={sessionId} />}
-      {tab === 'groups' && <GroupsTab sessionId={sessionId} />}
+      </div>
     </div>
   )
 }
@@ -230,22 +329,41 @@ function ContactsTab({ sessionId }: { sessionId: number }) {
     setLoading(true)
     api.listContacts(sessionId)
       .then(setContacts)
-      .catch(() => setError('Failed to load contacts'))
+      .catch(err => setError(err instanceof Error ? err.message : 'Failed to load contacts'))
       .finally(() => setLoading(false))
   }, [sessionId])
 
-  if (loading) return <div className="flex justify-center py-8"><div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
-  if (error) return <div className="bg-destructive/10 text-destructive text-sm rounded-lg px-4 py-3">{error}</div>
+  if (loading) {
+    return (
+      <div className="flex justify-center py-12">
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs text-muted-foreground">Loading contacts...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-destructive/10 text-destructive text-sm rounded-lg px-4 py-3 flex items-start gap-3 border border-destructive/20">
+        <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+        <span>{error}</span>
+      </div>
+    )
+  }
 
   return (
-    <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
-      <div className="px-5 py-4 border-b"><h3 className="font-semibold">Contacts ({contacts.length})</h3></div>
+    <div>
+      <h3 className="font-semibold mb-4">Contacts ({contacts.length})</h3>
       {contacts.length === 0 ? (
-        <div className="p-8 text-center"><p className="text-sm text-muted-foreground">No contacts found.</p></div>
+        <div className="text-center py-12">
+          <p className="text-sm text-muted-foreground">No contacts found.</p>
+        </div>
       ) : (
-        <div className="divide-y max-h-96 overflow-y-auto">
-          {contacts.map(c => (
-            <div key={c.jid} className="px-5 py-3 text-sm hover:bg-muted/30 transition-colors">
+        <div className="divide-y max-h-96 overflow-y-auto rounded-lg border border-border/40 dark:border-border/20">
+          {contacts.map((c, i) => (
+            <div key={c.jid} className="px-5 py-3 text-sm hover:bg-muted/30 transition-colors animate-slideUp" style={{ animationDelay: `${i * 30}ms` }}>
               <p className="font-medium">{c.name || c.push_name || 'Unknown'}</p>
               <p className="text-xs text-muted-foreground mt-0.5">{c.jid}</p>
             </div>
@@ -265,24 +383,43 @@ function GroupsTab({ sessionId }: { sessionId: number }) {
     setLoading(true)
     api.listGroups(sessionId)
       .then(setGroups)
-      .catch(() => setError('Failed to load groups'))
+      .catch(err => setError(err instanceof Error ? err.message : 'Failed to load groups'))
       .finally(() => setLoading(false))
   }, [sessionId])
 
-  if (loading) return <div className="flex justify-center py-8"><div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
-  if (error) return <div className="bg-destructive/10 text-destructive text-sm rounded-lg px-4 py-3">{error}</div>
+  if (loading) {
+    return (
+      <div className="flex justify-center py-12">
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs text-muted-foreground">Loading groups...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-destructive/10 text-destructive text-sm rounded-lg px-4 py-3 flex items-start gap-3 border border-destructive/20">
+        <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+        <span>{error}</span>
+      </div>
+    )
+  }
 
   return (
-    <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
-      <div className="px-5 py-4 border-b"><h3 className="font-semibold">Groups ({groups.length})</h3></div>
+    <div>
+      <h3 className="font-semibold mb-4">Groups ({groups.length})</h3>
       {groups.length === 0 ? (
-        <div className="p-8 text-center"><p className="text-sm text-muted-foreground">No groups found.</p></div>
+        <div className="text-center py-12">
+          <p className="text-sm text-muted-foreground">No groups found.</p>
+        </div>
       ) : (
-        <div className="divide-y max-h-96 overflow-y-auto">
-          {groups.map(g => (
-            <div key={g.group_jid} className="px-5 py-3 text-sm hover:bg-muted/30 transition-colors">
+        <div className="divide-y max-h-96 overflow-y-auto rounded-lg border border-border/40 dark:border-border/20">
+          {groups.map((g, i) => (
+            <div key={g.group_jid} className="px-5 py-3 text-sm hover:bg-muted/30 transition-colors animate-slideUp" style={{ animationDelay: `${i * 30}ms` }}>
               <p className="font-medium">{g.name}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{g.member_count} members &middot; {g.group_jid}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{g.member_count} members</p>
             </div>
           ))}
         </div>
