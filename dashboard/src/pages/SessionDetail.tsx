@@ -4,7 +4,7 @@ import { api } from '../lib/api'
 import type { Session, Contact, Group } from '../lib/api'
 import MessagesLog from './MessagesLog'
 import WebhooksTab from './WebhooksTab'
-import { ChevronLeft, Power, LogOut, Zap, AlertCircle, Loader2, Trash2 } from 'lucide-react'
+import { ChevronLeft, Power, LogOut, Zap, AlertCircle, Loader2 } from 'lucide-react'
 
 type Tab = 'settings' | 'messages' | 'webhooks' | 'contacts' | 'groups'
 

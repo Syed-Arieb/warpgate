@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import type { ApiKey, CreateApiKeyResponse } from '../lib/api'
-import { Plus, Copy, Trash2, AlertCircle, Loader2, Check, Eye, EyeOff } from 'lucide-react'
+import { Plus, Copy, Trash2, AlertCircle, Loader2, Check } from 'lucide-react'
 
 export default function ApiKeys() {
   const navigate = useNavigate()
@@ -15,7 +15,6 @@ export default function ApiKeys() {
   const [success, setSuccess] = useState('')
   const [copied, setCopied] = useState(false)
   const [deleting, setDeleting] = useState<number | null>(null)
-  const [showKey, setShowKey] = useState(false)
   const [creating, setCreating] = useState(false)
 
   const load = () => {
