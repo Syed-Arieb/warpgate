@@ -81,25 +81,21 @@ Replace `/etc/caddy/Caddyfile` with:
 
 ```caddy
 warpgate.example.com {
-    # Dashboard static files
-    root * /opt/warpgate/dashboard/dist
-    try_files {path} /index.html
-
-    # API reverse proxy
-    handle_path /api/* {
+    # API reverse proxy — must come BEFORE the static file handler
+    # so /api/** requests are proxied, not rewritten by try_files.
+    handle /api/** {
         reverse_proxy localhost:8080 {
-            # SSE support for QR streaming
             flush_interval -1
         }
     }
 
     # Media uploads
-    handle_path /uploads/* {
+    handle /uploads/** {
         reverse_proxy localhost:8080
     }
 
-    # Metrics - private network only
-    handle_path /api/metrics {
+    # Metrics — private network only
+    handle /api/metrics {
         @internal {
             remote_ip 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
         }
@@ -109,6 +105,13 @@ warpgate.example.com {
         handle {
             respond 403
         }
+    }
+
+    # SPA static files (catch-all — order matters!)
+    handle {
+        root * /opt/warpgate/dashboard/dist
+        try_files {path} /index.html
+        file_server
     }
 
     # Log all requests
