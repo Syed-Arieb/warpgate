@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/arieb/warpgate/internal/api/admin"
@@ -29,11 +30,13 @@ import (
 
 func New(cfg *config.Config, db *gorm.DB, rdb *redis.Client, waManager *wengine.Manager, store storage.Adapter) *fiber.App {
 	app := fiber.New(fiber.Config{
-		AppName:      "warpgate",
-		ReadTimeout:  30 * time.Second,
-		WriteTimeout: 60 * time.Second,
-		IdleTimeout:  120 * time.Second,
-		BodyLimit:    10 * 1024 * 1024,
+		AppName:           "warpgate",
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      60 * time.Second,
+		IdleTimeout:       120 * time.Second,
+		BodyLimit:         10 * 1024 * 1024,
+		EnablePrintRoutes: true,
+		StrictRouting:     false,
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			code := fiber.StatusInternalServerError
 			if e, ok := err.(*fiber.Error); ok {
@@ -178,6 +181,13 @@ func New(cfg *config.Config, db *gorm.DB, rdb *redis.Client, waManager *wengine.
 	adminGroup.Get("/sessions", adminHandler.ListSessions)
 	adminGroup.Get("/stats", adminHandler.Stats)
 	adminGroup.Delete("/sessions/:id", adminHandler.DeleteSession)
+
+	// Catch-all for unmatched API routes — returns JSON instead of Fiber's default "Cannot GET ..."
+	apiGroup.All("/*", func(c *fiber.Ctx) error {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": fmt.Sprintf("route not found: %s %s", c.Method(), c.Path()),
+		})
+	})
 
 	return app
 }
