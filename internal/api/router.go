@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/arieb/warpgate/internal/api/admin"
-	"github.com/arieb/warpgate/internal/api/auth"
 	auditapi "github.com/arieb/warpgate/internal/api/audit"
+	"github.com/arieb/warpgate/internal/api/auth"
 	contactapi "github.com/arieb/warpgate/internal/api/contact"
 	engineapi "github.com/arieb/warpgate/internal/api/engine"
 	groupapi "github.com/arieb/warpgate/internal/api/group"
@@ -52,6 +52,14 @@ func New(cfg *config.Config, db *gorm.DB, rdb *redis.Client, waManager *wengine.
 				"error": message,
 			})
 		},
+	})
+
+	app.Use(func(c *fiber.Ctx) error {
+		path := c.Path()
+		if len(path) > 1 && path[len(path)-1] == '/' {
+			c.Path(path[:len(path)-1])
+		}
+		return c.Next()
 	})
 
 	app.Use(recover.New())
