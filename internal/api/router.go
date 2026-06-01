@@ -42,14 +42,13 @@ func New(cfg *config.Config, db *gorm.DB, rdb *redis.Client, waManager *wengine.
 			if e, ok := err.(*fiber.Error); ok {
 				code = e.Code
 			}
-			if cfg.ReturnErrors {
-				return c.Status(code).JSON(fiber.Map{
-					"error": err.Error(),
-				})
-			}
-			message := "internal server error"
-			if code < 500 {
-				message = err.Error()
+			message := err.Error()
+			if !cfg.ReturnErrors {
+				if code >= 500 {
+					message = "internal server error"
+				} else if code == fiber.StatusNotFound {
+					message = fmt.Sprintf("Not Found: %s %s", c.Method(), c.Path())
+				}
 			}
 			return c.Status(code).JSON(fiber.Map{
 				"error": message,
@@ -181,13 +180,6 @@ func New(cfg *config.Config, db *gorm.DB, rdb *redis.Client, waManager *wengine.
 	adminGroup.Get("/sessions", adminHandler.ListSessions)
 	adminGroup.Get("/stats", adminHandler.Stats)
 	adminGroup.Delete("/sessions/:id", adminHandler.DeleteSession)
-
-	// Catch-all for unmatched API routes — returns JSON instead of Fiber's default "Cannot GET ..."
-	apiGroup.All("/*", func(c *fiber.Ctx) error {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": fmt.Sprintf("route not found: %s %s", c.Method(), c.Path()),
-		})
-	})
 
 	return app
 }
